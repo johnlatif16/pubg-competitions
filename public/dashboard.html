@@ -16,7 +16,6 @@
     th,td{border-bottom:1px solid #223055; padding:10px; text-align:right; font-size:14px; vertical-align:top}
     th{opacity:.9}
     .muted{opacity:.8; font-size:13px}
-    a{color:#9fb7ff}
     .row-actions{display:flex; gap:8px; flex-wrap:wrap}
   </style>
 </head>
@@ -28,7 +27,7 @@
         <div class="muted" id="status">... جاري التحقق</div>
       </div>
       <div class="row-actions">
-        <input id="q" placeholder="بحث بالاسم / الموبايل / ID" />
+        <input id="q" placeholder="بحث بالاسم / الموبايل / ID / اسم اللاعب" />
         <button class="primary" id="btnRefresh">تحديث</button>
         <button id="btnCSV">تصدير CSV</button>
         <button id="btnLogout">تسجيل خروج</button>
@@ -46,13 +45,11 @@
               <th>الموبايل</th>
               <th>الإيميل</th>
               <th>ID اللعبة</th>
-              <th>النظام</th>
-              <th>الشدة</th>
-              <th>ملاحظات</th>
+              <th>اسم اللاعب/أسماء اللاعبين</th>
             </tr>
           </thead>
           <tbody id="tbody">
-            <tr><td colspan="8">... جاري التحميل</td></tr>
+            <tr><td colspan="6">... جاري التحميل</td></tr>
           </tbody>
         </table>
       </div>
@@ -76,12 +73,6 @@
       if(!ms) return "";
       return new Date(ms).toLocaleString("ar-EG");
     }
-    function teamLabel(v){
-      if(v==="solo") return "فردي";
-      if(v==="duo") return "ثنائي";
-      if(v==="squad") return "رباعي";
-      return v || "";
-    }
 
     async function apiGet(url){
       const res = await fetch(url, { credentials: "include" });
@@ -103,10 +94,10 @@
     }
 
     async function loadRows(){
-      tbody.innerHTML = `<tr><td colspan="8">... جاري التحميل</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6">... جاري التحميل</td></tr>`;
       const { res, out } = await apiGet("/api/registrations");
       if(!res.ok){
-        location.href = "/login.html";
+        location.href = "/login";
         return;
       }
       allRows = out.rows || [];
@@ -116,15 +107,16 @@
     function render(){
       const needle = q.value.trim().toLowerCase();
       const rows = !needle ? allRows : allRows.filter(r => {
-        const blob = [r.fullName, r.phone, r.email, r.gameId, r.teamMode, r.shaddaType, r.notes]
-          .join(" ").toLowerCase();
+        const blob = [
+          r.fullName, r.phone, r.email, r.gameId, r.notes
+        ].join(" ").toLowerCase();
         return blob.includes(needle);
       });
 
       stats.textContent = `عدد التسجيلات المعروضة: ${rows.length} (الإجمالي: ${allRows.length})`;
 
       if(!rows.length){
-        tbody.innerHTML = `<tr><td colspan="8">لا توجد نتائج</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6">لا توجد نتائج</td></tr>`;
         return;
       }
 
@@ -135,15 +127,13 @@
           <td>${esc(r.phone)}</td>
           <td>${esc(r.email)}</td>
           <td>${esc(r.gameId)}</td>
-          <td>${esc(teamLabel(r.teamMode))}</td>
-          <td>${esc(r.shaddaType)}</td>
           <td>${esc(r.notes)}</td>
         </tr>
       `).join("");
     }
 
     function toCSV(rows){
-      const header = ["createdAtMs","fullName","phone","email","gameId","teamMode","shaddaType","notes"];
+      const header = ["createdAtMs","fullName","phone","email","gameId","notes"];
       const lines = [header.join(",")];
       for(const r of rows){
         const line = header.map(k => `"${String(r[k] ?? "").replace(/"/g,'""')}"`).join(",");
@@ -169,7 +159,7 @@
 
     document.getElementById("btnLogout").onclick = async () => {
       await fetch("/api/logout", { credentials: "include" });
-      location.href = "/login.html";
+      location.href = "/login";
     };
 
     q.addEventListener("input", render);
