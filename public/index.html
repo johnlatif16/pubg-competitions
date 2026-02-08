@@ -20,11 +20,7 @@
       --warning: #f59e0b;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, Roboto, 'Noto Sans Arabic', sans-serif;
@@ -36,20 +32,9 @@
       overflow-x: hidden;
     }
 
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 0 15px;
-    }
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 15px; }
 
-    /* تصميم الهيدر */
-    .header {
-      text-align: center;
-      margin-bottom: 40px;
-      padding-top: 20px;
-      position: relative;
-    }
-
+    .header { text-align: center; margin-bottom: 40px; padding-top: 20px; position: relative; }
     .header::after {
       content: '';
       position: absolute;
@@ -73,13 +58,8 @@
       display: inline-block;
     }
 
-    .subtitle {
-      color: var(--text-secondary);
-      font-size: 1.1rem;
-      opacity: 0.9;
-    }
+    .subtitle { color: var(--text-secondary); font-size: 1.1rem; opacity: 0.9; }
 
-    /* تصميم البطاقات */
     .card {
       background: var(--bg-card);
       border-radius: 20px;
@@ -89,11 +69,7 @@
       border: 1px solid var(--border);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
-    }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4); }
 
     .card-header {
       display: flex;
@@ -116,10 +92,7 @@
       font-size: 1.5rem;
     }
 
-    .card-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
+    .card-title { font-size: 1.5rem; font-weight: 700; }
 
     .badge {
       display: inline-block;
@@ -132,7 +105,6 @@
       margin-bottom: 15px;
     }
 
-    /* تصميم النموذج */
     .form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -140,9 +112,7 @@
       margin-bottom: 25px;
     }
 
-    .form-group {
-      margin-bottom: 20px;
-    }
+    .form-group { margin-bottom: 20px; }
 
     label {
       display: block;
@@ -152,10 +122,7 @@
       font-size: 0.95rem;
     }
 
-    .input-with-icon {
-      position: relative;
-    }
-
+    .input-with-icon { position: relative; }
     .input-icon {
       position: absolute;
       left: 15px;
@@ -182,15 +149,9 @@
       box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.2);
     }
 
-    input.rtl-icon {
-      padding-right: 20px;
-      padding-left: 50px;
-    }
+    input.rtl-icon { padding-right: 20px; padding-left: 50px; }
 
-    textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
+    textarea { min-height: 120px; resize: vertical; }
 
     .hint {
       font-size: 0.85rem;
@@ -199,18 +160,9 @@
       display: flex;
       align-items: center;
     }
+    .hint i { margin-left: 5px; }
 
-    .hint i {
-      margin-left: 5px;
-    }
-
-    /* تصميم الأزرار */
-    .actions {
-      display: flex;
-      gap: 15px;
-      margin-top: 30px;
-      flex-wrap: wrap;
-    }
+    .actions { display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap; }
 
     .btn {
       padding: 16px 30px;
@@ -232,7 +184,6 @@
       flex: 1;
       min-width: 150px;
     }
-
     .btn-primary:hover {
       background: linear-gradient(90deg, var(--accent-hover), #5a83ff);
       transform: translateY(-2px);
@@ -244,42 +195,32 @@
       color: var(--text-secondary);
       border: 2px solid var(--border);
     }
-
     .btn-secondary:hover {
       background: rgba(255, 255, 255, 0.05);
       border-color: var(--accent);
     }
 
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
-    }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
 
-    /* تصميم الرسائل */
     .message {
       padding: 18px;
       border-radius: 12px;
       margin-top: 25px;
-      display: flex;
+      display: none;
       align-items: center;
       gap: 15px;
-      display: none;
     }
-
     .message-success {
       background: rgba(16, 185, 129, 0.15);
       border: 1px solid rgba(16, 185, 129, 0.3);
       color: #10b981;
     }
-
     .message-error {
       background: rgba(239, 68, 68, 0.15);
       border: 1px solid rgba(239, 68, 68, 0.3);
       color: #ef4444;
     }
 
-    /* تصميم الفوتر */
     .footer {
       text-align: center;
       margin-top: 50px;
@@ -289,63 +230,24 @@
       border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* تصميم متجاوب */
     @media (max-width: 768px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .card {
-        padding: 25px 20px;
-      }
-      
-      .header::after {
-        width: 150px;
-      }
-      
-      .actions {
-        flex-direction: column;
-      }
-      
-      .btn {
-        width: 100%;
-      }
-      
-      .logo {
-        font-size: 1.8rem;
-      }
+      .form-grid { grid-template-columns: 1fr; }
+      .card { padding: 25px 20px; }
+      .header::after { width: 150px; }
+      .actions { flex-direction: column; }
+      .btn { width: 100%; }
+      .logo { font-size: 1.8rem; }
     }
 
     @media (max-width: 480px) {
-      body {
-        padding: 10px;
-      }
-      
-      .container {
-        padding: 0 10px;
-      }
-      
-      .card {
-        padding: 20px 15px;
-        border-radius: 16px;
-      }
-      
-      .card-header {
-        flex-direction: column;
-        text-align: center;
-      }
-      
-      .card-icon {
-        margin-left: 0;
-        margin-bottom: 15px;
-      }
-      
-      .logo {
-        font-size: 1.6rem;
-      }
+      body { padding: 10px; }
+      .container { padding: 0 10px; }
+      .card { padding: 20px 15px; border-radius: 16px; }
+      .card-header { flex-direction: column; text-align: center; }
+      .card-icon { margin-left: 0; margin-bottom: 15px; }
+      .logo { font-size: 1.6rem; }
     }
 
-    /* تأثيرات إضافية */
     .glow-effect {
       position: fixed;
       width: 300px;
@@ -354,44 +256,32 @@
       background: radial-gradient(circle, rgba(79, 124, 255, 0.1) 0%, transparent 70%);
       z-index: -1;
     }
-
-    .glow-1 {
-      top: 10%;
-      right: 5%;
-    }
-
-    .glow-2 {
-      bottom: 10%;
-      left: 5%;
-    }
+    .glow-1 { top: 10%; right: 5%; }
+    .glow-2 { bottom: 10%; left: 5%; }
   </style>
 </head>
+
 <body>
-  <!-- تأثيرات الخلفية -->
   <div class="glow-effect glow-1"></div>
   <div class="glow-effect glow-2"></div>
 
   <div class="container">
-    <!-- الهيدر -->
     <header class="header">
       <h1 class="logo"><i class="fas fa-trophy"></i> بطولات الجروب</h1>
       <p class="subtitle">سجل الآن في المسابقة الحالية وكن من الفائزين</p>
     </header>
 
-    <!-- بطاقة وصف الجروب -->
     <div class="card">
       <div class="card-header">
-        <div class="card-icon">
-          <i class="fas fa-users"></i>
-        </div>
+        <div class="card-icon"><i class="fas fa-users"></i></div>
         <div>
           <h2 class="card-title">وصف الجروب</h2>
           <div class="badge">معلومات عامة</div>
         </div>
       </div>
       <p>
-        الجروب مخصص لبطولات ورومات كل فترة حسب عدد الأفراد الموجودين على الشدة. 
-        من فردي 325 شدة إلى رباعي 660 شدة. 
+        الجروب مخصص لبطولات ورومات كل فترة حسب عدد الأفراد الموجودين على الشدة.
+        من فردي 325 شدة إلى رباعي 660 شدة.
         <span style="color: var(--accent); font-weight: 600;">بالتوفيق إن شاء الله</span>
       </p>
       <div class="hint" style="margin-top: 15px;">
@@ -399,12 +289,9 @@
       </div>
     </div>
 
-    <!-- نموذج التسجيل -->
     <div class="card">
       <div class="card-header">
-        <div class="card-icon">
-          <i class="fas fa-edit"></i>
-        </div>
+        <div class="card-icon"><i class="fas fa-edit"></i></div>
         <h2 class="card-title">نموذج التسجيل</h2>
       </div>
 
@@ -423,14 +310,6 @@
             <div class="input-with-icon">
               <input type="tel" id="phone" name="phone" required placeholder="مثال: 01012345678" class="rtl-icon">
               <div class="input-icon"><i class="fas fa-phone"></i></div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="email"><i class="fas fa-envelope"></i> الإيميل (اختياري)</label>
-            <div class="input-with-icon">
-              <input type="email" id="email" name="email" placeholder="name@example.com" class="rtl-icon">
-              <div class="input-icon"><i class="fas fa-envelope"></i></div>
             </div>
           </div>
 
@@ -464,7 +343,7 @@
           <i class="fas fa-check-circle"></i>
           <div class="message-text"></div>
         </div>
-        
+
         <div id="msgErr" class="message message-error">
           <i class="fas fa-exclamation-circle"></i>
           <div class="message-text"></div>
@@ -472,7 +351,6 @@
       </form>
     </div>
 
-    <!-- الفوتر -->
     <footer class="footer">
       <p>© 2026 بطولات ببجي | جميع الحقوق محفوظة</p>
     </footer>
@@ -485,49 +363,49 @@
     const errBox = document.getElementById("msgErr");
 
     function showMessage(box, text) {
-      const textEl = box.querySelector('.message-text');
+      const textEl = box.querySelector(".message-text");
       textEl.textContent = text;
-      box.style.display = 'flex';
+      box.style.display = "flex";
     }
-    
-    function hideMessage(box) { 
-      box.style.display = 'none'; 
+
+    function hideMessage(box) {
+      box.style.display = "none";
     }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      hideMessage(okBox); 
+      hideMessage(okBox);
       hideMessage(errBox);
 
       btn.disabled = true;
+      const oldHtml = btn.innerHTML;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التسجيل...';
-      
+
       try {
         const data = Object.fromEntries(new FormData(form).entries());
 
-        // محاكاة لإرسال البيانات (يمكن استبدالها بـ fetch حقيقي)
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // في الحقيقة، استخدم:
-        // const res = await fetch("/api/register", {
-        //   method: "POST",
-        //   headers: {"Content-Type":"application/json"},
-        //   body: JSON.stringify(data)
-        // });
-        // const result = await res.json();
-        
-        // نجاح محاكاة
-        showMessage(okBox, "✅ تم التسجيل بنجاح! سيتم التواصل معك قريبًا. بالتوفيق ✨");
+        const res = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+
+        const txt = await res.text();
+        let out;
+        try { out = JSON.parse(txt); }
+        catch { out = { error: txt || "Non-JSON response" }; }
+
+        if (!res.ok) throw new Error(out.error || "حدث خطأ");
+
+        showMessage(okBox, "✅ تم التسجيل بنجاح! بالتوفيق ✨");
         form.reset();
-        
-        // إخفاء الرسالة بعد 5 ثوان
+
         setTimeout(() => hideMessage(okBox), 5000);
-        
       } catch (err) {
-        showMessage(errBox, "❌ حدث خطأ في التسجيل: " + (err.message || "يرجى المحاولة مرة أخرى"));
+        showMessage(errBox, "❌ " + (err.message || "حدث خطأ"));
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> تسجيل المشاركة';
+        btn.innerHTML = oldHtml;
       }
     });
   </script>
