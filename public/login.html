@@ -16,31 +16,55 @@
     .msg{margin-top:12px; padding:12px; border-radius:12px; display:none; white-space:pre-wrap}
     .err{background:#2a1010; border:1px solid #7a2222}
     .ok{background:#0f2a1b; border:1px solid #1f6a3a}
-    .muted{opacity:.75; font-size:13px; margin-top:10px; line-height:1.6}
     a{color:#9fb7ff}
   </style>
 </head>
 <body>
   <div class="wrap">
+
     <div class="card">
       <h2>دخول الأدمن</h2>
 
       <form id="loginForm" autocomplete="off">
-        <label for="user">اسم المستخدم</label>
-        <input id="user" name="user" type="text" required placeholder="USERNAME" />
+        <label>اسم المستخدم</label>
+        <input name="user" type="text" required placeholder="USERNAME" />
 
-        <label for="password">كلمة المرور</label>
-        <input id="password" name="password" type="password" required placeholder="PASSWORD" />
+        <label>كلمة المرور</label>
+        <input name="password" type="password" required placeholder="PASSWORD" />
 
         <button id="btn" type="submit">دخول</button>
 
         <div id="msgOk" class="msg ok"></div>
         <div id="msgErr" class="msg err"></div>
-
-        <div class="muted">
-          هذه الصفحة مخصصة لمسؤولي النظام فقط.
-        </div>
       </form>
+
+      <!-- ✅ NEW: تغيير اليوزر / الباسورد (نفس الستايل) -->
+      <div id="adminTools" style="display:none; margin-top:14px;">
+        <button id="openUserBox" type="button">تغيير اسم المستخدم</button>
+        <button id="openPassBox" type="button">تغيير الباسورد</button>
+
+        <!-- تغيير اسم المستخدم -->
+        <div id="userBox" style="display:none; margin-top:10px;">
+          <label>الباسورد الحالي</label>
+          <input id="u_currentPass" type="password" placeholder="CURRENT PASSWORD" />
+
+          <label>اسم المستخدم الجديد</label>
+          <input id="u_newUser" type="text" placeholder="NEW USERNAME" />
+
+          <button id="saveUser" type="button">حفظ اسم المستخدم</button>
+        </div>
+
+        <!-- تغيير الباسورد -->
+        <div id="passBox" style="display:none; margin-top:10px;">
+          <label>الباسورد الحالي</label>
+          <input id="p_currentPass" type="password" placeholder="CURRENT PASSWORD" />
+
+          <label>الباسورد الجديد</label>
+          <input id="p_newPass" type="password" placeholder="NEW PASSWORD (min 8 chars)" />
+
+          <button id="savePass" type="button">حفظ الباسورد</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -50,26 +74,45 @@
     const okBox = document.getElementById("msgOk");
     const errBox = document.getElementById("msgErr");
 
+    const adminTools = document.getElementById("adminTools");
+    const openUserBox = document.getElementById("openUserBox");
+    const openPassBox = document.getElementById("openPassBox");
+    const userBox = document.getElementById("userBox");
+    const passBox = document.getElementById("passBox");
+
+    const saveUser = document.getElementById("saveUser");
+    const savePass = document.getElementById("savePass");
+
     function show(box, text) { box.textContent = text; box.style.display = "block"; }
     function hide(box){ box.style.display = "none"; }
 
-    async function alreadyLoggedIn() {
-      // لو التوكن موجود وصالح -> روح للداشبورد
+    function showTools() { adminTools.style.display = "block"; }
+    function toggle(el) { el.style.display = (el.style.display === "none" ? "block" : "none"); }
+
+    // ✅ لو الأدمن بالفعل داخل (token cookie) نظهر أدوات التغيير
+    (async () => {
       try {
         const res = await fetch("/api/me", { credentials: "include" });
-        if (res.ok) location.href = "/dashboard.html";
+        if (res.ok) showTools();
       } catch {}
-    }
+    })();
 
-    alreadyLoggedIn();
+    openUserBox.addEventListener("click", () => {
+      hide(okBox); hide(errBox);
+      passBox.style.display = "none";
+      toggle(userBox);
+    });
+
+    openPassBox.addEventListener("click", () => {
+      hide(okBox); hide(errBox);
+      userBox.style.display = "none";
+      toggle(passBox);
+    });
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       hide(okBox); hide(errBox);
-
       btn.disabled = true;
-      const oldText = btn.textContent;
-      btn.textContent = "جاري تسجيل الدخول...";
 
       try {
         const data = Object.fromEntries(new FormData(form).entries());
@@ -89,13 +132,84 @@
         if (!res.ok) throw new Error(out.error || "بيانات غير صحيحة");
 
         show(okBox, "✅ تم تسجيل الدخول بنجاح");
+        showTools(); // ✅ بعد تسجيل الدخول نظهر أدوات التغيير
+
         setTimeout(() => (location.href = "/dashboard.html"), 250);
+
+      } catch (err) {
+        show(errBox, "❌ " + err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // ✅ تغيير اسم المستخدم
+    saveUser.addEventListener("click", async () => {
+      hide(okBox); hide(errBox);
+      saveUser.disabled = true;
+
+      try {
+        const currentPassword = document.getElementById("u_currentPass").value;
+        const newUser = document.getElementById("u_newUser").value;
+
+        const res = await fetch("/api/admin/username", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ currentPassword, newUser })
+        });
+
+        const txt = await res.text();
+        let out;
+        try { out = JSON.parse(txt); }
+        catch { out = { error: txt || "Non-JSON response" }; }
+
+        if (!res.ok) throw new Error(out.error || "فشل تغيير اسم المستخدم");
+
+        show(okBox, "✅ تم تغيير اسم المستخدم بنجاح");
+        document.getElementById("u_currentPass").value = "";
+        document.getElementById("u_newUser").value = "";
+        userBox.style.display = "none";
 
       } catch (err) {
         show(errBox, "❌ " + (err.message || "حدث خطأ"));
       } finally {
-        btn.disabled = false;
-        btn.textContent = oldText;
+        saveUser.disabled = false;
+      }
+    });
+
+    // ✅ تغيير الباسورد
+    savePass.addEventListener("click", async () => {
+      hide(okBox); hide(errBox);
+      savePass.disabled = true;
+
+      try {
+        const currentPassword = document.getElementById("p_currentPass").value;
+        const newPassword = document.getElementById("p_newPass").value;
+
+        const res = await fetch("/api/admin/password", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+
+        const txt = await res.text();
+        let out;
+        try { out = JSON.parse(txt); }
+        catch { out = { error: txt || "Non-JSON response" }; }
+
+        if (!res.ok) throw new Error(out.error || "فشل تغيير الباسورد");
+
+        show(okBox, "✅ تم تغيير الباسورد بنجاح");
+        document.getElementById("p_currentPass").value = "";
+        document.getElementById("p_newPass").value = "";
+        passBox.style.display = "none";
+
+      } catch (err) {
+        show(errBox, "❌ " + (err.message || "حدث خطأ"));
+      } finally {
+        savePass.disabled = false;
       }
     });
   </script>
