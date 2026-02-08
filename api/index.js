@@ -1,6 +1,9 @@
 // api/index.js
+// Stable Vercel single-handler API with Firestore + Admin JWT cookie auth.
 
 let _admin = null;
+
+/* ---------------- Helpers ---------------- */
 
 function json(res, status, data) {
   res.statusCode = status;
@@ -13,17 +16,18 @@ function readBody(req) {
     let raw = "";
     req.on("data", (c) => (raw += c));
     req.on("end", () => {
+      if (!raw) return resolve({});
       try {
-        resolve(raw ? JSON.parse(raw) : {});
+        resolve(JSON.parse(raw));
       } catch {
-        reject(new Error("Invalid JSON"));
+        reject(new Error("Invalid JSON body"));
       }
     });
   });
 }
 
 function getPath(req) {
-  return req.url.split("?")[0];
+  return (req.url || "").split("?")[0];
 }
 
 function getCookieToken(req) {
@@ -32,19 +36,20 @@ function getCookieToken(req) {
   return cookies.token || null;
 }
 
-function requireAuth(req) {
+function isAuth(req) {
   try {
     const jwt = require("jsonwebtoken");
     const token = getCookieToken(req);
     if (!token) return false;
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return decoded && decoded.role === "admin";
+    return !!decoded && decoded.role === "admin";
   } catch {
     return false;
   }
 }
 
-/* ---------- Firebase Lazy Init ---------- */
+/* ---------------- Firebase Admin (lazy) ---------------- */
+
 function getAdmin() {
   if (_admin) return _admin;
 
@@ -55,7 +60,7 @@ function getAdmin() {
   try {
     cfg = JSON.parse(raw);
   } catch {
-    throw new Error("FIREBASE_CONFIG invalid JSON");
+    throw new Error("FIREBASE_CONFIG must be valid JSON");
   }
 
   const projectId = cfg.projectId || cfg.project_id;
@@ -63,16 +68,16 @@ function getAdmin() {
   const privateKeyRaw = cfg.privateKey || cfg.private_key;
 
   if (!projectId || !clientEmail || !privateKeyRaw) {
-    throw new Error("FIREBASE_CONFIG missing fields");
+    throw new Error("FIREBASE_CONFIG missing projectId/clientEmail/privateKey");
   }
 
   const admin = require("firebase-admin");
-
   if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId,
         clientEmail,
+        // env keeps \n as two chars; convert to real newlines
         privateKey: String(privateKeyRaw).replace(/\\n/g, "\n"),
       }),
     });
@@ -87,10 +92,16 @@ function getDb() {
   return admin.firestore();
 }
 
-/* ---------- Handlers ---------- */
+/* ---------------- Handlers ---------------- */
+
+async function handleHealth(req, res) {
+  return json(res, 200, { ok: true });
+}
+
 async function handleLogin(req, res) {
-  const body = await readBody(req);
-  const { user, password } = body;
+  if (req.method !== "POST") return json(res, 405, { error: "Method not allowed" });
+
+  const { user, password } = await readBody(req);
 
   if (!user || !password) return json(res, 400, { error: "Missing credentials" });
 
@@ -114,9 +125,10 @@ async function handleLogin(req, res) {
     "Set-Cookie",
     cookie.serialize("token", token, {
       httpOnly: true,
-      secure: true,
       sameSite: "Lax",
       path: "/",
+      // Secure cookies are sent only over HTTPS (prod on Vercel is HTTPS) :contentReference[oaicite:1]{index=1}
+      secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7,
     })
   );
@@ -130,63 +142,81 @@ async function handleLogout(req, res) {
     "Set-Cookie",
     cookie.serialize("token", "", {
       httpOnly: true,
-      secure: true,
       sameSite: "Lax",
       path: "/",
+      secure: process.env.NODE_ENV === "production",
       maxAge: 0,
     })
   );
   return json(res, 200, { ok: true });
 }
 
-async function handleRegister(req, res) {
-  const body = await readBody(req);
-  const { fullName, phone, gameId } = body;
-
-  if (!fullName || !phone || !gameId) {
-    return json(res, 400, { error: "Missing fields" });
-  }
-
-  const db = getDb();
-  await db.collection("registrations").add({
-    ...body,
-    createdAtMs: Date.now(),
-  });
-
+async function handleMe(req, res) {
+  if (!isAuth(req)) return json(res, 401, { error: "Unauthorized" });
   return json(res, 200, { ok: true });
 }
 
+async function handleRegister(req, res) {
+  if (req.method !== "POST") return json(res, 405, { error: "Method not allowed" });
+
+  const body = await readBody(req);
+
+  const fullName = String(body.fullName || "").trim();
+  const phone = String(body.phone || "").trim();
+  const gameId = String(body.gameId || "").trim();
+
+  if (fullName.length < 2) return json(res, 400, { error: "fullName is required" });
+  if (phone.length < 6) return json(res, 400, { error: "phone is required" });
+  if (gameId.length < 2) return json(res, 400, { error: "gameId is required" });
+
+  const db = getDb();
+
+  await db.collection("registrations").add({
+    fullName,
+    phone,
+    email: body.email ? String(body.email).trim().toLowerCase() : "",
+    gameId,
+    teamMode: body.teamMode ? String(body.teamMode) : "solo",
+    shaddaType: body.shaddaType ? String(body.shaddaType) : "",
+    notes: body.notes ? String(body.notes).trim() : "",
+    createdAtMs: Date.now(),
+  });
+
+  return json(res, 200, { ok: true, message: "Registered successfully" });
+}
+
 async function handleRegistrations(req, res) {
-  if (!requireAuth(req)) return json(res, 401, { error: "Unauthorized" });
+  if (!isAuth(req)) return json(res, 401, { error: "Unauthorized" });
 
   const db = getDb();
   const snap = await db
     .collection("registrations")
     .orderBy("createdAtMs", "desc")
-    .limit(500)
+    .limit(1000)
     .get();
 
   const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   return json(res, 200, { ok: true, rows });
 }
 
-/* ---------- Router ---------- */
+/* ---------------- Router ---------------- */
+
 module.exports = async (req, res) => {
   try {
     const path = getPath(req);
 
-    // ✅ health لازم يرد دايمًا
-    if (path === "/api/health") return json(res, 200, { ok: true });
+    if (path === "/api/health") return await handleHealth(req, res);
 
-    if (path === "/api/login" && req.method === "POST") return await handleLogin(req, res);
+    if (path === "/api/login") return await handleLogin(req, res);
     if (path === "/api/logout") return await handleLogout(req, res);
+    if (path === "/api/me") return await handleMe(req, res);
 
-    if (path === "/api/register" && req.method === "POST") return await handleRegister(req, res);
+    if (path === "/api/register") return await handleRegister(req, res);
     if (path === "/api/registrations") return await handleRegistrations(req, res);
 
     return json(res, 404, { error: "Not found" });
   } catch (e) {
-    // خليها JSON علشان login.html ما يتهزش
+    // always JSON (so the frontend won't crash on non-JSON responses)
     return json(res, 500, { error: e.message || "Server error" });
   }
 };
