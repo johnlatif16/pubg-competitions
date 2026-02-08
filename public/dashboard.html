@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>لوحة التحكم</title>
+
+<style>
+body{font-family:system-ui; margin:0; background:#0b1220; color:#e9eefc}
+.wrap{max-width:1100px; margin:auto; padding:25px}
+.top{display:flex; justify-content:space-between; align-items:center}
+.card{background:#121a2c; border:1px solid #263252; border-radius:12px; padding:15px; margin-top:15px}
+button{padding:10px 14px; border-radius:10px; border:0; background:#4f7cff; color:white; cursor:pointer}
+input{padding:10px; border-radius:10px; border:1px solid #2a3a62; background:#0c1427; color:white}
+table{width:100%; border-collapse:collapse; margin-top:10px}
+th,td{padding:10px; border-bottom:1px solid #223055; text-align:right}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+<div class="top">
+<h2>Dashboard</h2>
+<div>
+<input id="search" placeholder="بحث..." />
+<button onclick="logout()">Logout</button>
+</div>
+</div>
+
+<div class="card">
+<div id="stats"></div>
+<table>
+<thead>
+<tr>
+<th>التاريخ</th>
+<th>الاسم</th>
+<th>الموبايل</th>
+<th>ID</th>
+<th>النظام</th>
+<th>الشدة</th>
+<th>ملاحظات</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+</div>
+
+<script>
+let allRows = [];
+
+function esc(s){
+return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+
+function fmt(ms){
+if(!ms) return "";
+return new Date(ms).toLocaleString("ar-EG");
+}
+
+async function checkAuth(){
+const r = await fetch("/api/me");
+if(!r.ok){
+location.href="/login.html";
+return false;
+}
+return true;
+}
+
+async function load(){
+if(!(await checkAuth())) return;
+
+const res = await fetch("/api/registrations");
+if(!res.ok){
+location.href="/login.html";
+return;
+}
+
+const data = await res.json();
+allRows = data.rows || [];
+render();
+}
+
+function render(){
+const q = document.getElementById("search").value.toLowerCase();
+let rows = allRows.filter(r =>
+Object.values(r).join(" ").toLowerCase().includes(q)
+);
+
+document.getElementById("stats").textContent =
+"عدد التسجيلات: " + rows.length;
+
+document.getElementById("tbody").innerHTML = rows.map(r=>`
+<tr>
+<td>${esc(fmt(r.createdAtMs))}</td>
+<td>${esc(r.fullName)}</td>
+<td>${esc(r.phone)}</td>
+<td>${esc(r.gameId)}</td>
+<td>${esc(r.teamMode)}</td>
+<td>${esc(r.shaddaType)}</td>
+<td>${esc(r.notes)}</td>
+</tr>
+`).join("");
+}
+
+async function logout(){
+await fetch("/api/logout");
+location.href="/login.html";
+}
+
+document.getElementById("search").addEventListener("input",render);
+load();
+</script>
+</body>
+</html>
