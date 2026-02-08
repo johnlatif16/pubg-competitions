@@ -1,6 +1,4 @@
 // api/index.js
-// Stable Vercel single-handler API with Firestore + Admin JWT cookie auth.
-
 let _admin = null;
 
 /* ---------------- Helpers ---------------- */
@@ -77,7 +75,6 @@ function getAdmin() {
       credential: admin.credential.cert({
         projectId,
         clientEmail,
-        // env keeps \n as two chars; convert to real newlines
         privateKey: String(privateKeyRaw).replace(/\\n/g, "\n"),
       }),
     });
@@ -127,7 +124,6 @@ async function handleLogin(req, res) {
       httpOnly: true,
       sameSite: "Lax",
       path: "/",
-      // Secure cookies are sent only over HTTPS (prod on Vercel is HTTPS) :contentReference[oaicite:1]{index=1}
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7,
     })
@@ -164,10 +160,12 @@ async function handleRegister(req, res) {
   const fullName = String(body.fullName || "").trim();
   const phone = String(body.phone || "").trim();
   const gameId = String(body.gameId || "").trim();
+  const notes = String(body.notes || "").trim(); // اسم اللاعب/أسماء اللاعبين
 
   if (fullName.length < 2) return json(res, 400, { error: "fullName is required" });
   if (phone.length < 6) return json(res, 400, { error: "phone is required" });
   if (gameId.length < 2) return json(res, 400, { error: "gameId is required" });
+  if (notes.length < 2) return json(res, 400, { error: "player name(s) is required" });
 
   const db = getDb();
 
@@ -176,9 +174,7 @@ async function handleRegister(req, res) {
     phone,
     email: body.email ? String(body.email).trim().toLowerCase() : "",
     gameId,
-    teamMode: body.teamMode ? String(body.teamMode) : "solo",
-    shaddaType: body.shaddaType ? String(body.shaddaType) : "",
-    notes: body.notes ? String(body.notes).trim() : "",
+    notes,
     createdAtMs: Date.now(),
   });
 
@@ -216,7 +212,6 @@ module.exports = async (req, res) => {
 
     return json(res, 404, { error: "Not found" });
   } catch (e) {
-    // always JSON (so the frontend won't crash on non-JSON responses)
     return json(res, 500, { error: e.message || "Server error" });
   }
 };
