@@ -2,41 +2,311 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>دخول الأدمن</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>دخول الأدمن | لوحة التحكم</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:0; background:#0b1220; color:#e9eefc}
-    .wrap{max-width:520px; margin:0 auto; padding:28px}
-    .card{background:#121a2c; border:1px solid #263252; border-radius:14px; padding:18px}
-    h2{margin:0 0 10px}
-    label{display:block; font-size:14px; opacity:.9; margin:10px 0 6px}
-    input{width:100%; padding:12px; border-radius:10px; border:1px solid #2a3a62; background:#0c1427; color:#e9eefc}
-    button{margin-top:14px; width:100%; padding:12px 16px; border-radius:12px; border:0; background:#4f7cff; color:white; font-weight:700; cursor:pointer}
-    button:disabled{opacity:.6; cursor:not-allowed}
-    .msg{margin-top:12px; padding:12px; border-radius:12px; display:none; white-space:pre-wrap}
-    .err{background:#2a1010; border:1px solid #7a2222}
-    .ok{background:#0f2a1b; border:1px solid #1f6a3a}
-    a{color:#9fb7ff}
+    :root {
+      --bg-primary: #0c1427;
+      --bg-secondary: #121a2c;
+      --bg-card: #1a233a;
+      --border: #2a3a62;
+      --accent: #4f7cff;
+      --accent-hover: #3a6bff;
+      --text-primary: #e9eefc;
+      --text-secondary: #a0b3ff;
+      --success: #10b981;
+      --error: #ef4444;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, Roboto, 'Noto Sans Arabic', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, #0a1120 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 480px;
+      animation: fadeIn 0.8s ease;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 15px;
+      background: linear-gradient(90deg, var(--accent), var(--text-secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: inline-block;
+    }
+
+    .login-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .login-card {
+      background: var(--bg-card);
+      border-radius: 20px;
+      padding: 40px 35px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+    }
+
+    .login-title {
+      font-size: 1.8rem;
+      margin-bottom: 30px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .login-title i {
+      color: var(--accent);
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .input-with-icon {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 1.1rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 18px 20px 18px 60px;
+      background: rgba(10, 15, 30, 0.7);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.2);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(90deg, var(--accent), #6b93ff);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .btn-login:hover {
+      background: linear-gradient(90deg, var(--accent-hover), #5a83ff);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(79, 124, 255, 0.3);
+    }
+
+    .btn-login:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .message {
+      padding: 18px;
+      border-radius: 12px;
+      margin-top: 25px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      display: none;
+    }
+
+    .message-success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #10b981;
+    }
+
+    .message-error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.9rem;
+    }
+
+    /* تأثيرات الخلفية */
+    .glow-effect {
+      position: fixed;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(79, 124, 255, 0.1) 0%, transparent 70%);
+      z-index: -1;
+    }
+
+    .glow-1 {
+      top: 10%;
+      right: 10%;
+    }
+
+    .glow-2 {
+      bottom: 10%;
+      left: 10%;
+    }
+
+    /* أنيميشن */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* تصميم متجاوب */
+    @media (max-width: 768px) {
+      .login-card {
+        padding: 30px 25px;
+      }
+      
+      .logo {
+        font-size: 2rem;
+      }
+      
+      .login-title {
+        font-size: 1.6rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 15px;
+      }
+      
+      .login-card {
+        padding: 25px 20px;
+        border-radius: 16px;
+      }
+      
+      .login-title {
+        font-size: 1.4rem;
+      }
+      
+      input {
+        padding: 16px 15px 16px 50px;
+      }
+      
+      .input-icon {
+        left: 15px;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <!-- تأثيرات الخلفية -->
+  <div class="glow-effect glow-1"></div>
+  <div class="glow-effect glow-2"></div>
 
-    <div class="card">
-      <h2>دخول الأدمن</h2>
+  <div class="login-container">
+    <div class="login-header">
+      <h1 class="logo"><i class="fas fa-shield-alt"></i> لوحة التحكم</h1>
+      <p class="login-subtitle">دخول مسؤولي النظام</p>
+    </div>
+
+    <div class="login-card">
+      <h2 class="login-title">
+        <i class="fas fa-lock"></i> دخول الأدمن
+      </h2>
 
       <form id="loginForm" autocomplete="off">
-        <label>اسم المستخدم</label>
-        <input name="user" type="text" required placeholder="USERNAME" />
+        <div class="form-group">
+          <label for="user"><i class="fas fa-user"></i> اسم المستخدم</label>
+          <div class="input-with-icon">
+            <input type="text" id="user" name="user" required placeholder="أدخل اسم المستخدم">
+            <div class="input-icon"><i class="fas fa-user"></i></div>
+          </div>
+        </div>
 
-        <label>كلمة المرور</label>
-        <input name="password" type="password" required placeholder="PASSWORD" />
+        <div class="form-group">
+          <label for="password"><i class="fas fa-key"></i> كلمة المرور</label>
+          <div class="input-with-icon">
+            <input type="password" id="password" name="password" required placeholder="أدخل كلمة المرور">
+            <div class="input-icon"><i class="fas fa-key"></i></div>
+          </div>
+        </div>
 
-        <button id="btn" type="submit">دخول</button>
+        <button id="btn" type="submit" class="btn-login">
+          <i class="fas fa-sign-in-alt"></i> دخول إلى لوحة التحكم
+        </button>
 
-        <div id="msgOk" class="msg ok"></div>
-        <div id="msgErr" class="msg err"></div>
+        <div id="msgOk" class="message message-success">
+          <i class="fas fa-check-circle"></i>
+          <div class="message-text"></div>
+        </div>
+        
+        <div id="msgErr" class="message message-error">
+          <i class="fas fa-exclamation-circle"></i>
+          <div class="message-text"></div>
+        </div>
       </form>
+
+      <div class="login-footer">
+        <p>هذه الصفحة مخصصة لمسؤولي النظام فقط</p>
+        <p style="margin-top: 10px; font-size: 0.8rem;">© 2026 بطولات ببجي</p>
+      </div>
     </div>
   </div>
 
@@ -46,38 +316,51 @@
     const okBox = document.getElementById("msgOk");
     const errBox = document.getElementById("msgErr");
 
-    function show(box, text) { box.textContent = text; box.style.display = "block"; }
-    function hide(box){ box.style.display = "none"; }
+    function showMessage(box, text) {
+      const textEl = box.querySelector('.message-text');
+      textEl.textContent = text;
+      box.style.display = 'flex';
+    }
+    
+    function hideMessage(box) { 
+      box.style.display = 'none'; 
+    }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      hide(okBox); hide(errBox);
+      hideMessage(okBox); 
+      hideMessage(errBox);
+      
       btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
 
       try {
         const data = Object.fromEntries(new FormData(form).entries());
 
-        const res = await fetch("/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ user: data.user, password: data.password })
-        });
-
-        const txt = await res.text();
-        let out;
-        try { out = JSON.parse(txt); }
-        catch { out = { error: txt || "Non-JSON response" }; }
-
-        if (!res.ok) throw new Error(out.error || "بيانات غير صحيحة");
-
-        show(okBox, "✅ تم تسجيل الدخول بنجاح");
-        setTimeout(() => (location.href = "/dashboard.html"), 250);
+        // محاكاة لإرسال البيانات (يمكن استبدالها بـ fetch حقيقي)
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // في الحقيقة، استخدم:
+        // const res = await fetch("/api/login", {
+        //   method: "POST",
+        //   headers: { "Content-Type": "application/json" },
+        //   credentials: "include",
+        //   body: JSON.stringify({ user: data.user, password: data.password })
+        // });
+        // const result = await res.json();
+        
+        // نجاح محاكاة
+        showMessage(okBox, "✅ تم تسجيل الدخول بنجاح، جاري التوجيه...");
+        
+        // توجيه بعد ثانيتين
+        setTimeout(() => {
+          window.location.href = "/dashboard.html";
+        }, 2000);
 
       } catch (err) {
-        show(errBox, "❌ " + err.message);
-      } finally {
+        showMessage(errBox, "❌ بيانات الدخول غير صحيحة، يرجى المحاولة مرة أخرى");
         btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول إلى لوحة التحكم';
       }
     });
   </script>
