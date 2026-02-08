@@ -317,7 +317,7 @@ async function handleAdminPassword(req, res) {
   const pass = String(body.newPassword || "");
 
   if (!currentPassword) return json(res, 400, { error: "currentPassword is required" });
-  if (pass.length < 6) return json(res, 400, { error: "newPassword must be at least 6 chars" });
+  if (pass.length < 5) return json(res, 400, { error: "newPassword must be at least 5 chars" });
 
   const db = getDb();
 
