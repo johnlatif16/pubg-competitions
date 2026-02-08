@@ -13,7 +13,7 @@
     .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
     @media (max-width:720px){.grid{grid-template-columns:1fr}}
     label{display:block; font-size:14px; opacity:.9; margin:10px 0 6px}
-    input,select,textarea{width:100%; padding:12px; border-radius:10px; border:1px solid #2a3a62; background:#0c1427; color:#e9eefc}
+    input,textarea{width:100%; padding:12px; border-radius:10px; border:1px solid #2a3a62; background:#0c1427; color:#e9eefc}
     textarea{min-height:90px; resize:vertical}
     .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px}
     button{padding:12px 16px; border-radius:12px; border:0; background:#4f7cff; color:white; font-weight:700; cursor:pointer}
@@ -25,13 +25,14 @@
     .top{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap}
     a{color:#9fb7ff}
     .badge{display:inline-block; padding:6px 10px; border-radius:999px; background:#0c1427; border:1px solid #2a3a62; font-size:12px}
+    .hint{opacity:.85; font-size:13px; margin-top:6px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top">
       <h1>تسجيل بطولات / رومات</h1>
-      <a href="/login.html">دخول الأدمن</a>
+      <a href="/login">دخول الأدمن</a>
     </div>
 
     <div class="card" style="margin-bottom:14px">
@@ -50,38 +51,28 @@
             <label>الاسم بالكامل *</label>
             <input name="fullName" required placeholder="مثال: أحمد محمد" />
           </div>
+
           <div>
             <label>رقم الموبايل / واتساب *</label>
             <input name="phone" required placeholder="مثال: 010xxxxxxxx" />
           </div>
+
           <div>
             <label>الإيميل (اختياري)</label>
             <input name="email" type="email" placeholder="name@example.com" />
           </div>
+
           <div>
             <label>ID اللعبة *</label>
             <input name="gameId" required placeholder="اكتب الـ ID" />
           </div>
-          <div>
-            <label>نظام اللعب</label>
-            <select name="teamMode">
-              <option value="solo">فردي</option>
-              <option value="duo">ثنائي</option>
-              <option value="squad">رباعي</option>
-            </select>
-          </div>
-          <div>
-            <label>نوع الشدة (اختياري)</label>
-            <select name="shaddaType">
-              <option value="">-- اختر --</option>
-              <option value="325">325 شدة</option>
-              <option value="660">660 شدة</option>
-            </select>
-          </div>
         </div>
 
-        <label>ملاحظات (اختياري)</label>
-        <textarea name="notes" placeholder="أي تفاصيل إضافية..."></textarea>
+        <label>اسم اللاعب / أسماء اللاعبين (اسم الأكونت) *</label>
+        <textarea name="notes" required placeholder="اكتب أسماء اللاعبين هنا..."></textarea>
+        <div class="hint">
+          لو الروم فردي: اكتب اسم واحد — لو ثنائي: اسمين — لو رباعي: 4 أسماء.
+        </div>
 
         <div class="actions">
           <button id="btnSubmit" type="submit">تسجيل</button>
@@ -113,13 +104,20 @@
       btn.disabled = true;
       try {
         const data = Object.fromEntries(new FormData(form).entries());
+
         const res = await fetch("/api/register", {
           method: "POST",
           headers: {"Content-Type":"application/json"},
           body: JSON.stringify(data)
         });
-        const out = await res.json();
+
+        const txt = await res.text();
+        let out;
+        try { out = JSON.parse(txt); }
+        catch { out = { error: txt || "Non-JSON response" }; }
+
         if (!res.ok) throw new Error(out.error || "حدث خطأ");
+
         show(okBox, "✅ تم التسجيل بنجاح! بالتوفيق ✨");
         form.reset();
       } catch (err) {
