@@ -1,0 +1,16 @@
+{
+  "name": "tournament-registrations-vercel-firestore",
+  "version": "1.0.0",
+  "private": true,
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo \"No build step\"",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "cookie": "^0.6.0",
+    "firebase-admin": "^12.3.0",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
