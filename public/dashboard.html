@@ -1,115 +1,184 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>لوحة التحكم</title>
-
-<style>
-body{font-family:system-ui; margin:0; background:#0b1220; color:#e9eefc}
-.wrap{max-width:1100px; margin:auto; padding:25px}
-.top{display:flex; justify-content:space-between; align-items:center}
-.card{background:#121a2c; border:1px solid #263252; border-radius:12px; padding:15px; margin-top:15px}
-button{padding:10px 14px; border-radius:10px; border:0; background:#4f7cff; color:white; cursor:pointer}
-input{padding:10px; border-radius:10px; border:1px solid #2a3a62; background:#0c1427; color:white}
-table{width:100%; border-collapse:collapse; margin-top:10px}
-th,td{padding:10px; border-bottom:1px solid #223055; text-align:right}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:0; background:#0b1220; color:#e9eefc}
+    .wrap{max-width:1100px; margin:0 auto; padding:28px}
+    .top{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap}
+    .card{background:#121a2c; border:1px solid #263252; border-radius:14px; padding:18px; margin-top:14px}
+    button{padding:10px 14px; border-radius:12px; border:1px solid #2a3a62; background:#0c1427; color:#e9eefc; cursor:pointer}
+    .primary{background:#4f7cff; border:0; color:#fff; font-weight:700}
+    input{padding:10px 12px; border-radius:12px; border:1px solid #2a3a62; background:#0c1427; color:#e9eefc; width:260px; max-width:100%}
+    table{width:100%; border-collapse:collapse; margin-top:12px}
+    th,td{border-bottom:1px solid #223055; padding:10px; text-align:right; font-size:14px; vertical-align:top}
+    th{opacity:.9}
+    .muted{opacity:.8; font-size:13px}
+    a{color:#9fb7ff}
+    .row-actions{display:flex; gap:8px; flex-wrap:wrap}
+  </style>
 </head>
-
 <body>
-<div class="wrap">
-<div class="top">
-<h2>Dashboard</h2>
-<div>
-<input id="search" placeholder="بحث..." />
-<button onclick="logout()">Logout</button>
-</div>
-</div>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1 style="margin:0">Dashboard</h1>
+        <div class="muted" id="status">... جاري التحقق</div>
+      </div>
+      <div class="row-actions">
+        <input id="q" placeholder="بحث بالاسم / الموبايل / ID" />
+        <button class="primary" id="btnRefresh">تحديث</button>
+        <button id="btnCSV">تصدير CSV</button>
+        <button id="btnLogout">تسجيل خروج</button>
+      </div>
+    </div>
 
-<div class="card">
-<div id="stats"></div>
-<table>
-<thead>
-<tr>
-<th>التاريخ</th>
-<th>الاسم</th>
-<th>الموبايل</th>
-<th>ID</th>
-<th>النظام</th>
-<th>الشدة</th>
-<th>ملاحظات</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
-</div>
-</div>
+    <div class="card">
+      <div class="muted" id="stats"></div>
+      <div style="overflow:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>الاسم</th>
+              <th>الموبايل</th>
+              <th>الإيميل</th>
+              <th>ID اللعبة</th>
+              <th>النظام</th>
+              <th>الشدة</th>
+              <th>ملاحظات</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="8">... جاري التحميل</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted">لو اتحولت لـ Login يبقى الـ JWT cookie مش موجود/انتهى.</p>
+    </div>
+  </div>
 
-<script>
-let allRows = [];
+  <script>
+    const tbody = document.getElementById("tbody");
+    const stats = document.getElementById("stats");
+    const statusEl = document.getElementById("status");
+    const q = document.getElementById("q");
+    let allRows = [];
 
-function esc(s){
-return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-}
+    function esc(s){
+      return String(s ?? "").replace(/[&<>"']/g, (c)=>({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[c]));
+    }
+    function fmtDate(ms){
+      if(!ms) return "";
+      return new Date(ms).toLocaleString("ar-EG");
+    }
+    function teamLabel(v){
+      if(v==="solo") return "فردي";
+      if(v==="duo") return "ثنائي";
+      if(v==="squad") return "رباعي";
+      return v || "";
+    }
 
-function fmt(ms){
-if(!ms) return "";
-return new Date(ms).toLocaleString("ar-EG");
-}
+    async function apiGet(url){
+      const res = await fetch(url, { credentials: "include" });
+      const txt = await res.text();
+      let out;
+      try { out = JSON.parse(txt); }
+      catch { out = { error: txt || "Non-JSON response" }; }
+      return { res, out };
+    }
 
-async function checkAuth(){
-const r = await fetch("/api/me");
-if(!r.ok){
-location.href="/login.html";
-return false;
-}
-return true;
-}
+    async function ensureAuth(){
+      const { res } = await apiGet("/api/me");
+      if(!res.ok){
+        location.href = "/login";
+        return false;
+      }
+      statusEl.textContent = "✅ مسجل دخول";
+      return true;
+    }
 
-async function load(){
-if(!(await checkAuth())) return;
+    async function loadRows(){
+      tbody.innerHTML = `<tr><td colspan="8">... جاري التحميل</td></tr>`;
+      const { res, out } = await apiGet("/api/registrations");
+      if(!res.ok){
+        location.href = "/login";
+        return;
+      }
+      allRows = out.rows || [];
+      render();
+    }
 
-const res = await fetch("/api/registrations");
-if(!res.ok){
-location.href="/login.html";
-return;
-}
+    function render(){
+      const needle = q.value.trim().toLowerCase();
+      const rows = !needle ? allRows : allRows.filter(r => {
+        const blob = [r.fullName, r.phone, r.email, r.gameId, r.teamMode, r.shaddaType, r.notes]
+          .join(" ").toLowerCase();
+        return blob.includes(needle);
+      });
 
-const data = await res.json();
-allRows = data.rows || [];
-render();
-}
+      stats.textContent = `عدد التسجيلات المعروضة: ${rows.length} (الإجمالي: ${allRows.length})`;
 
-function render(){
-const q = document.getElementById("search").value.toLowerCase();
-let rows = allRows.filter(r =>
-Object.values(r).join(" ").toLowerCase().includes(q)
-);
+      if(!rows.length){
+        tbody.innerHTML = `<tr><td colspan="8">لا توجد نتائج</td></tr>`;
+        return;
+      }
 
-document.getElementById("stats").textContent =
-"عدد التسجيلات: " + rows.length;
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${esc(fmtDate(r.createdAtMs))}</td>
+          <td>${esc(r.fullName)}</td>
+          <td>${esc(r.phone)}</td>
+          <td>${esc(r.email)}</td>
+          <td>${esc(r.gameId)}</td>
+          <td>${esc(teamLabel(r.teamMode))}</td>
+          <td>${esc(r.shaddaType)}</td>
+          <td>${esc(r.notes)}</td>
+        </tr>
+      `).join("");
+    }
 
-document.getElementById("tbody").innerHTML = rows.map(r=>`
-<tr>
-<td>${esc(fmt(r.createdAtMs))}</td>
-<td>${esc(r.fullName)}</td>
-<td>${esc(r.phone)}</td>
-<td>${esc(r.gameId)}</td>
-<td>${esc(r.teamMode)}</td>
-<td>${esc(r.shaddaType)}</td>
-<td>${esc(r.notes)}</td>
-</tr>
-`).join("");
-}
+    function toCSV(rows){
+      const header = ["createdAtMs","fullName","phone","email","gameId","teamMode","shaddaType","notes"];
+      const lines = [header.join(",")];
+      for(const r of rows){
+        const line = header.map(k => `"${String(r[k] ?? "").replace(/"/g,'""')}"`).join(",");
+        lines.push(line);
+      }
+      return lines.join("\n");
+    }
 
-async function logout(){
-await fetch("/api/logout");
-location.href="/login.html";
-}
+    document.getElementById("btnRefresh").onclick = async () => {
+      await loadRows();
+    };
 
-document.getElementById("search").addEventListener("input",render);
-load();
-</script>
+    document.getElementById("btnCSV").onclick = () => {
+      const csv = toCSV(allRows);
+      const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "registrations.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    document.getElementById("btnLogout").onclick = async () => {
+      await fetch("/api/logout", { credentials: "include" });
+      location.href = "/login";
+    };
+
+    q.addEventListener("input", render);
+
+    (async () => {
+      if(await ensureAuth()){
+        await loadRows();
+      }
+    })();
+  </script>
 </body>
 </html>
