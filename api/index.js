@@ -28,6 +28,11 @@ function getPath(req) {
   return (req.url || "").split("?")[0];
 }
 
+function getQuery(req) {
+  const url = new URL(req.url || "", "http://localhost");
+  return url.searchParams;
+}
+
 function getCookieToken(req) {
   const cookie = require("cookie");
   const cookies = cookie.parse(req.headers.cookie || "");
@@ -195,6 +200,21 @@ async function handleRegistrations(req, res) {
   return json(res, 200, { ok: true, rows });
 }
 
+// ✅ NEW: delete one registration by id
+async function handleDeleteRegistration(req, res) {
+  if (!isAuth(req)) return json(res, 401, { error: "Unauthorized" });
+  if (req.method !== "DELETE") return json(res, 405, { error: "Method not allowed" });
+
+  const q = getQuery(req);
+  const id = (q.get("id") || "").trim();
+  if (!id) return json(res, 400, { error: "Missing id" });
+
+  const db = getDb();
+  await db.collection("registrations").doc(id).delete();
+
+  return json(res, 200, { ok: true });
+}
+
 /* ---------------- Router ---------------- */
 
 module.exports = async (req, res) => {
@@ -209,6 +229,9 @@ module.exports = async (req, res) => {
 
     if (path === "/api/register") return await handleRegister(req, res);
     if (path === "/api/registrations") return await handleRegistrations(req, res);
+
+    // ✅ NEW endpoint
+    if (path === "/api/registration") return await handleDeleteRegistration(req, res);
 
     return json(res, 404, { error: "Not found" });
   } catch (e) {
