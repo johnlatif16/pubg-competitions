@@ -52,9 +52,6 @@
             <tr><td colspan="6">... جاري التحميل</td></tr>
           </tbody>
         </table>
-      </div>
-      <p class="muted">لو اتحولت لـ Login يبقى الـ JWT cookie مش موجود/انتهى.</p>
-    </div>
   </div>
 
   <script>
@@ -86,7 +83,7 @@
     async function ensureAuth(){
       const { res } = await apiGet("/api/me");
       if(!res.ok){
-        location.href = "/login";
+        location.href = "/login.html";
         return false;
       }
       statusEl.textContent = "✅ مسجل دخول";
@@ -97,7 +94,7 @@
       tbody.innerHTML = `<tr><td colspan="6">... جاري التحميل</td></tr>`;
       const { res, out } = await apiGet("/api/registrations");
       if(!res.ok){
-        location.href = "/login";
+        location.href = "/login.html";
         return;
       }
       allRows = out.rows || [];
@@ -159,7 +156,7 @@
 
     document.getElementById("btnLogout").onclick = async () => {
       await fetch("/api/logout", { credentials: "include" });
-      location.href = "/login";
+      location.href = "/login.html";
     };
 
     q.addEventListener("input", render);
