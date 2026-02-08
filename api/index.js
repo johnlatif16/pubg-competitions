@@ -94,6 +94,49 @@ function getDb() {
   return admin.firestore();
 }
 
+/* ---------------- Admin Auth Config in Firestore ---------------- */
+
+async function getAdminAuthRef(db) {
+  return db.collection("admin").doc("auth");
+}
+
+/**
+ * Reads admin auth from Firestore.
+ * If missing, bootstraps once from ENV (ADMIN_USER/ADMIN_PASSWORD) and stores hashed password.
+ */
+async function readAdminAuth(db) {
+  const ref = await getAdminAuthRef(db);
+  const snap = await ref.get();
+  if (snap.exists) return { ref, data: snap.data() };
+
+  // Bootstrap from ENV once (if provided)
+  const adminUser = process.env.ADMIN_USER || "";
+  const adminPassword = process.env.ADMIN_PASSWORD || "";
+
+  if (!adminUser || !adminPassword) {
+    return { ref, data: null };
+  }
+
+  const bcrypt = require("bcryptjs");
+  const passwordHash = await bcrypt.hash(String(adminPassword), 12);
+
+  const data = {
+    user: String(adminUser),
+    passwordHash,
+    updatedAtMs: Date.now(),
+  };
+
+  await ref.set(data, { merge: true });
+  return { ref, data };
+}
+
+async function verifyCurrentPassword(db, currentPassword) {
+  const { data } = await readAdminAuth(db);
+  if (!data?.passwordHash) return false;
+  const bcrypt = require("bcryptjs");
+  return await bcrypt.compare(String(currentPassword || ""), String(data.passwordHash));
+}
+
 /* ---------------- Handlers ---------------- */
 
 async function handleHealth(req, res) {
@@ -104,23 +147,30 @@ async function handleLogin(req, res) {
   if (req.method !== "POST") return json(res, 405, { error: "Method not allowed" });
 
   const { user, password } = await readBody(req);
-
   if (!user || !password) return json(res, 400, { error: "Missing credentials" });
 
-  const adminUser = process.env.ADMIN_USER || "";
-  const adminPassword = process.env.ADMIN_PASSWORD || "";
   const jwtSecret = process.env.JWT_SECRET || "";
-
-  if (!adminUser || !adminPassword || !jwtSecret) {
-    return json(res, 500, { error: "Missing ADMIN_USER / ADMIN_PASSWORD / JWT_SECRET" });
+  if (!jwtSecret) {
+    return json(res, 500, { error: "Missing JWT_SECRET" });
   }
 
-  if (String(user) !== adminUser || String(password) !== adminPassword) {
+  const db = getDb();
+  const { data } = await readAdminAuth(db);
+
+  if (!data?.user || !data?.passwordHash) {
+    return json(res, 500, { error: "Admin auth config not set" });
+  }
+
+  const bcrypt = require("bcryptjs");
+  const okUser = String(user) === String(data.user);
+  const okPass = await bcrypt.compare(String(password), String(data.passwordHash));
+
+  if (!okUser || !okPass) {
     return json(res, 401, { error: "Invalid credentials" });
   }
 
   const jwt = require("jsonwebtoken");
-  const token = jwt.sign({ role: "admin", user: adminUser }, jwtSecret, { expiresIn: "7d" });
+  const token = jwt.sign({ role: "admin", user: data.user }, jwtSecret, { expiresIn: "7d" });
 
   const cookie = require("cookie");
   res.setHeader(
@@ -199,7 +249,7 @@ async function handleRegistrations(req, res) {
   return json(res, 200, { ok: true, rows });
 }
 
-// ✅ NEW: delete one registration by id
+// delete one registration by id
 async function handleDeleteRegistration(req, res) {
   if (!isAuth(req)) return json(res, 401, { error: "Unauthorized" });
   if (req.method !== "DELETE") return json(res, 405, { error: "Method not allowed" });
@@ -210,6 +260,51 @@ async function handleDeleteRegistration(req, res) {
 
   const db = getDb();
   await db.collection("registrations").doc(id).delete();
+
+  return json(res, 200, { ok: true });
+}
+
+/* -------- NEW: Change admin username/password (requires current password) -------- */
+
+async function handleAdminUsername(req, res) {
+  if (!isAuth(req)) return json(res, 401, { error: "Unauthorized" });
+  if (req.method !== "PATCH") return json(res, 405, { error: "Method not allowed" });
+
+  const { currentPassword, newUser } = await readBody(req);
+  const userTrim = String(newUser || "").trim();
+
+  if (!currentPassword) return json(res, 400, { error: "currentPassword is required" });
+  if (userTrim.length < 2) return json(res, 400, { error: "newUser is required" });
+
+  const db = getDb();
+  const ok = await verifyCurrentPassword(db, currentPassword);
+  if (!ok) return json(res, 401, { error: "Current password is incorrect" });
+
+  const { ref } = await readAdminAuth(db);
+  await ref.set({ user: userTrim, updatedAtMs: Date.now() }, { merge: true });
+
+  return json(res, 200, { ok: true });
+}
+
+async function handleAdminPassword(req, res) {
+  if (!isAuth(req)) return json(res, 401, { error: "Unauthorized" });
+  if (req.method !== "PATCH") return json(res, 405, { error: "Method not allowed" });
+
+  const { currentPassword, newPassword } = await readBody(req);
+  const pass = String(newPassword || "");
+
+  if (!currentPassword) return json(res, 400, { error: "currentPassword is required" });
+  if (pass.length < 8) return json(res, 400, { error: "newPassword must be at least 8 chars" });
+
+  const db = getDb();
+  const ok = await verifyCurrentPassword(db, currentPassword);
+  if (!ok) return json(res, 401, { error: "Current password is incorrect" });
+
+  const bcrypt = require("bcryptjs");
+  const passwordHash = await bcrypt.hash(pass, 12);
+
+  const { ref } = await readAdminAuth(db);
+  await ref.set({ passwordHash, updatedAtMs: Date.now() }, { merge: true });
 
   return json(res, 200, { ok: true });
 }
@@ -229,8 +324,11 @@ module.exports = async (req, res) => {
     if (path === "/api/register") return await handleRegister(req, res);
     if (path === "/api/registrations") return await handleRegistrations(req, res);
 
-    // ✅ NEW endpoint
     if (path === "/api/registration") return await handleDeleteRegistration(req, res);
+
+    // ✅ NEW endpoints
+    if (path === "/api/admin/username") return await handleAdminUsername(req, res);
+    if (path === "/api/admin/password") return await handleAdminPassword(req, res);
 
     return json(res, 404, { error: "Not found" });
   } catch (e) {
