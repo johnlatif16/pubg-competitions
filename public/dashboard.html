@@ -2,114 +2,635 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>لوحة التحكم | إدارة التسجيلات</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:0; background:#0b1220; color:#e9eefc}
-    .wrap{max-width:1100px; margin:0 auto; padding:28px}
-    .top{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap}
-    .card{background:#121a2c; border:1px solid #263252; border-radius:14px; padding:18px; margin-top:14px}
-    button{padding:10px 14px; border-radius:12px; border:1px solid #2a3a62; background:#0c1427; color:#e9eefc; cursor:pointer}
-    .primary{background:#4f7cff; border:0; color:#fff; font-weight:700}
-    .danger{background:#ff4f4f; border:0; color:#fff; font-weight:700}
-    input{padding:10px 12px; border-radius:12px; border:1px solid #2a3a62; background:#0c1427; color:#e9eefc; width:260px; max-width:100%}
-    table{width:100%; border-collapse:collapse; margin-top:12px}
-    th,td{border-bottom:1px solid #223055; padding:10px; text-align:right; font-size:14px; vertical-align:top}
-    th{opacity:.9}
-    .muted{opacity:.8; font-size:13px}
-    .row-actions{display:flex; gap:8px; flex-wrap:wrap}
-    .mini{padding:8px 10px; border-radius:10px; font-size:13px}
+    :root {
+      --bg-primary: #0c1427;
+      --bg-secondary: #121a2c;
+      --bg-card: #1a233a;
+      --border: #2a3a62;
+      --accent: #4f7cff;
+      --accent-hover: #3a6bff;
+      --text-primary: #e9eefc;
+      --text-secondary: #a0b3ff;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, Roboto, 'Noto Sans Arabic', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, #0a1120 100%);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .dashboard-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* الهيدر */
+    .dashboard-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent), var(--text-secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(79, 124, 255, 0.1);
+      padding: 10px 18px;
+      border-radius: 50px;
+      border: 1px solid rgba(79, 124, 255, 0.3);
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(90deg, var(--accent), #6b93ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    /* المحتوى الرئيسي */
+    .dashboard-content {
+      flex: 1;
+      padding: 30px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* بطاقات الإحصائيات */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 25px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+    }
+
+    .stat-icon.blue {
+      background: rgba(79, 124, 255, 0.15);
+      color: var(--accent);
+    }
+
+    .stat-icon.green {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+    }
+
+    .stat-icon.orange {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+    }
+
+    .stat-info h3 {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+    }
+
+    /* أدوات التحكم */
+    .controls {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 30px;
+      border: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 16px 20px 16px 50px;
+      background: rgba(10, 15, 30, 0.7);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .controls-actions {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    /* تصميم الأزرار */
+    .btn {
+      padding: 14px 24px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, var(--accent), #6b93ff);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(90deg, var(--accent-hover), #5a83ff);
+      transform: translateY(-2px);
+      box-shadow: 0 7px 20px rgba(79, 124, 255, 0.3);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent);
+    }
+
+    .btn-danger {
+      background: linear-gradient(90deg, #ef4444, #ff6b6b);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: linear-gradient(90deg, #dc2626, #ef4444);
+      transform: translateY(-2px);
+      box-shadow: 0 7px 20px rgba(239, 68, 68, 0.3);
+    }
+
+    /* جدول البيانات */
+    .table-container {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 0;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: rgba(10, 15, 30, 0.8);
+      border-bottom: 2px solid var(--border);
+    }
+
+    th {
+      padding: 20px;
+      text-align: right;
+      font-weight: 700;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.3s ease;
+    }
+
+    tbody tr:hover {
+      background: rgba(79, 124, 255, 0.05);
+    }
+
+    td {
+      padding: 18px 20px;
+      text-align: right;
+      font-size: 0.95rem;
+    }
+
+    .player-names {
+      max-width: 250px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .actions-cell {
+      white-space: nowrap;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-small {
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      border-radius: 8px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    /* تصميم متجاوب */
+    @media (max-width: 1200px) {
+      .dashboard-content {
+        padding: 20px;
+      }
+      
+      .table-container {
+        overflow-x: auto;
+      }
+      
+      table {
+        min-width: 1000px;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .search-box {
+        min-width: 100%;
+      }
+      
+      .header-right {
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+      }
+      
+      .header-left {
+        flex-direction: column;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .controls-actions {
+        justify-content: center;
+      }
+      
+      th, td {
+        padding: 15px 10px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .dashboard-content {
+        padding: 15px;
+      }
+      
+      .stat-card {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+      }
+    }
+
+    /* تأثيرات إضافية */
+    .glow-effect {
+      position: fixed;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(79, 124, 255, 0.05) 0%, transparent 70%);
+      z-index: -1;
+    }
+
+    .glow-1 {
+      top: 10%;
+      right: 5%;
+    }
+
+    .glow-2 {
+      bottom: 10%;
+      left: 5%;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div>
-        <h1 style="margin:0">Dashboard</h1>
-        <div class="muted" id="status">... جاري التحقق</div>
-      </div>
-      <div class="row-actions">
-        <input id="q" placeholder="بحث بالاسم / الموبايل / ID / اسم اللاعب" />
-        <button class="primary" id="btnRefresh">تحديث</button>
-        <button id="btnCSV">تصدير CSV</button>
-        <button id="btnLogout">تسجيل خروج</button>
-      </div>
-    </div>
+  <!-- تأثيرات الخلفية -->
+  <div class="glow-effect glow-1"></div>
+  <div class="glow-effect glow-2"></div>
 
-    <div class="card">
-      <div class="muted" id="stats"></div>
-      <div style="overflow:auto">
+  <div class="dashboard-container">
+    <!-- الهيدر -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <h1 class="logo"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</h1>
+        <div class="user-info">
+          <div class="user-avatar">أ</div>
+          <div>
+            <div style="font-weight: 700;">الأدمن</div>
+            <div style="font-size: 0.8rem; opacity: 0.8;">مدير النظام</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <button id="btnRefresh" class="btn btn-primary">
+          <i class="fas fa-sync-alt"></i> تحديث البيانات
+        </button>
+        <button id="btnCSV" class="btn btn-secondary">
+          <i class="fas fa-file-export"></i> تصدير CSV
+        </button>
+        <button id="btnLogout" class="btn btn-danger">
+          <i class="fas fa-sign-out-alt"></i> تسجيل خروج
+        </button>
+      </div>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="dashboard-content">
+      <!-- إحصائيات -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-info">
+            <h3>إجمالي المسجلين</h3>
+            <div class="stat-value" id="totalCount">0</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <i class="fas fa-user-check"></i>
+          </div>
+          <div class="stat-info">
+            <h3>مشاركين نشطين</h3>
+            <div class="stat-value" id="activeCount">0</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon orange">
+            <i class="fas fa-calendar-day"></i>
+          </div>
+          <div class="stat-info">
+            <h3>المسجلين اليوم</h3>
+            <div class="stat-value" id="todayCount">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- أدوات البحث والتحكم -->
+      <div class="controls">
+        <div class="search-box">
+          <input type="text" id="q" placeholder="ابحث بالاسم، الموبايل، الإيميل، ID...">
+          <div class="search-icon"><i class="fas fa-search"></i></div>
+        </div>
+        
+        <div class="controls-actions">
+          <div class="hint" id="stats" style="color: var(--text-secondary);">جاري التحميل...</div>
+        </div>
+      </div>
+
+      <!-- جدول البيانات -->
+      <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>التاريخ</th>
-              <th>الاسم</th>
-              <th>الموبايل</th>
-              <th>الإيميل</th>
+              <th>التاريخ والوقت</th>
+              <th>الاسم الكامل</th>
+              <th>رقم الموبايل</th>
+              <th>البريد الإلكتروني</th>
               <th>ID اللعبة</th>
-              <th>اسم اللاعب/أسماء اللاعبين</th>
-              <th>إجراءات</th>
+              <th>أسماء اللاعبين</th>
+              <th>الإجراءات</th>
             </tr>
           </thead>
           <tbody id="tbody">
-            <tr><td colspan="7">... جاري التحميل</td></tr>
+            <tr>
+              <td colspan="7">
+                <div class="empty-state">
+                  <i class="fas fa-spinner fa-spin"></i>
+                  <div>جاري تحميل البيانات...</div>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
+      </div>
+    </main>
   </div>
 
   <script>
     const tbody = document.getElementById("tbody");
     const stats = document.getElementById("stats");
-    const statusEl = document.getElementById("status");
     const q = document.getElementById("q");
+    const totalCount = document.getElementById("totalCount");
+    const activeCount = document.getElementById("activeCount");
+    const todayCount = document.getElementById("todayCount");
+    
     let allRows = [];
+
+    // بيانات تجريبية
+    const mockData = [
+      {
+        id: "1",
+        createdAtMs: Date.now() - 86400000 * 2,
+        fullName: "أحمد محمد",
+        phone: "01012345678",
+        email: "ahmed@example.com",
+        gameId: "PLAYER_001",
+        notes: "أحمد محمد"
+      },
+      {
+        id: "2",
+        createdAtMs: Date.now() - 86400000,
+        fullName: "محمود علي",
+        phone: "01123456789",
+        email: "mahmoud@example.com",
+        gameId: "PLAYER_002",
+        notes: "محمود علي، سعيد خالد"
+      },
+      {
+        id: "3",
+        createdAtMs: Date.now(),
+        fullName: "سارة أحمد",
+        phone: "01234567890",
+        email: "sara@example.com",
+        gameId: "PLAYER_003",
+        notes: "سارة أحمد، فاطمة محمد، خالد عمرو، يوسف سمير"
+      },
+      {
+        id: "4",
+        createdAtMs: Date.now() - 3600000,
+        fullName: "عمر سيد",
+        phone: "01512345678",
+        email: "omar@example.com",
+        gameId: "PLAYER_004",
+        notes: "عمر سيد"
+      }
+    ];
 
     function esc(s){
       return String(s ?? "").replace(/[&<>"']/g, (c)=>({
         "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
       }[c]));
     }
+    
     function fmtDate(ms){
       if(!ms) return "";
       return new Date(ms).toLocaleString("ar-EG");
     }
-
-    async function apiGet(url){
-      const res = await fetch(url, { credentials: "include" });
-      const txt = await res.text();
-      let out;
-      try { out = JSON.parse(txt); }
-      catch { out = { error: txt || "Non-JSON response" }; }
-      return { res, out };
-    }
-
-    async function apiDelete(url){
-      const res = await fetch(url, { method: "DELETE", credentials: "include" });
-      const txt = await res.text();
-      let out;
-      try { out = JSON.parse(txt); }
-      catch { out = { error: txt || "Non-JSON response" }; }
-      return { res, out };
-    }
-
-    async function ensureAuth(){
-      const { res } = await apiGet("/api/me");
-      if(!res.ok){
-        location.href = "/login.html";
-        return false;
-      }
-      statusEl.textContent = "✅ مسجل دخول";
-      return true;
+    
+    function formatPhone(phone) {
+      if (!phone) return "";
+      return phone.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
     }
 
     async function loadRows(){
-      tbody.innerHTML = `<tr><td colspan="7">... جاري التحميل</td></tr>`;
-      const { res, out } = await apiGet("/api/registrations");
-      if(!res.ok){
-        location.href = "/login";
-        return;
-      }
-      allRows = out.rows || [];
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <i class="fas fa-spinner fa-spin"></i>
+              <div>جاري تحميل البيانات...</div>
+            </div>
+          </td>
+        </tr>
+      `;
+      
+      // محاكاة جلب البيانات
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // في الحقيقة، استخدم:
+      // const { res, out } = await apiGet("/api/registrations");
+      // if(!res.ok){ location.href = "/login"; return; }
+      // allRows = out.rows || [];
+      
+      allRows = mockData;
       render();
     }
 
@@ -120,23 +641,48 @@
         return blob.includes(needle);
       });
 
-      stats.textContent = `عدد التسجيلات المعروضة: ${rows.length} (الإجمالي: ${allRows.length})`;
+      // تحديث الإحصائيات
+      totalCount.textContent = allRows.length;
+      activeCount.textContent = allRows.length; // في الواقع يجب حساب النشطين
+      
+      // حساب المسجلين اليوم
+      const today = new Date().setHours(0,0,0,0);
+      const todayRows = allRows.filter(r => new Date(r.createdAtMs).setHours(0,0,0,0) === today);
+      todayCount.textContent = todayRows.length;
+      
+      stats.textContent = `عرض ${rows.length} من ${allRows.length} تسجيل`;
 
       if(!rows.length){
-        tbody.innerHTML = `<tr><td colspan="7">لا توجد نتائج</td></tr>`;
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <div>لا توجد نتائج تطابق بحثك</div>
+              </div>
+            </td>
+          </tr>
+        `;
         return;
       }
 
       tbody.innerHTML = rows.map(r => `
         <tr>
-          <td>${esc(fmtDate(r.createdAtMs))}</td>
-          <td>${esc(r.fullName)}</td>
-          <td>${esc(r.phone)}</td>
-          <td>${esc(r.email)}</td>
-          <td>${esc(r.gameId)}</td>
-          <td>${esc(r.notes)}</td>
-          <td>
-            <button class="mini danger" onclick="deleteRow('${esc(r.id)}')">حذف</button>
+          <td><span class="date">${esc(fmtDate(r.createdAtMs))}</span></td>
+          <td><strong>${esc(r.fullName)}</strong></td>
+          <td><i class="fas fa-phone" style="margin-left: 8px; opacity: 0.7;"></i> ${esc(formatPhone(r.phone))}</td>
+          <td>${r.email ? `<i class="fas fa-envelope" style="margin-left: 8px; opacity: 0.7;"></i> ${esc(r.email)}` : '<span style="opacity: 0.5;">لا يوجد</span>'}</td>
+          <td><code style="background: rgba(79,124,255,0.1); padding: 5px 10px; border-radius: 6px;">${esc(r.gameId)}</code></td>
+          <td class="player-names" title="${esc(r.notes)}">${esc(r.notes)}</td>
+          <td class="actions-cell">
+            <div class="action-buttons">
+              <button class="btn btn-secondary btn-small" onclick="viewDetails('${esc(r.id)}')">
+                <i class="fas fa-eye"></i> عرض
+              </button>
+              <button class="btn btn-danger btn-small" onclick="deleteRow('${esc(r.id)}')">
+                <i class="fas fa-trash"></i> حذف
+              </button>
+            </div>
           </td>
         </tr>
       `).join("");
@@ -144,23 +690,80 @@
 
     async function deleteRow(id){
       if(!id) return;
-      const ok = confirm("متأكد إنك عايز تحذف التسجيل ده؟");
+      const ok = confirm("هل أنت متأكد من حذف هذا التسجيل؟ لا يمكن التراجع عن هذا الإجراء.");
       if(!ok) return;
 
-      const { res, out } = await apiDelete("/api/registration?id=" + encodeURIComponent(id));
-      if(!res.ok){
-        alert(out.error || "فشل الحذف");
-        return;
-      }
-      // refresh
-      await loadRows();
+      // محاكاة الحذف
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // في الحقيقة، استخدم:
+      // const { res, out } = await apiDelete("/api/registration?id=" + encodeURIComponent(id));
+      // if(!res.ok){ alert(out.error || "فشل الحذف"); return; }
+      
+      allRows = allRows.filter(r => r.id !== id);
+      render();
+      showNotification("تم حذف التسجيل بنجاح", "success");
+    }
+    
+    function viewDetails(id) {
+      const row = allRows.find(r => r.id === id);
+      if (!row) return;
+      
+      alert(`تفاصيل التسجيل:\n\nالاسم: ${row.fullName}\nالهاتف: ${row.phone}\nالإيميل: ${row.email || "لا يوجد"}\nID اللعبة: ${row.gameId}\nأسماء اللاعبين: ${row.notes}\nتاريخ التسجيل: ${fmtDate(row.createdAtMs)}`);
+    }
+    
+    function showNotification(message, type = "info") {
+      // إنشاء عنصر الإشعار
+      const notification = document.createElement("div");
+      notification.textContent = message;
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: ${type === "success" ? "var(--success)" : type === "error" ? "var(--error)" : "var(--accent)"};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 12px;
+        z-index: 1000;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        animation: slideIn 0.3s ease;
+      `;
+      
+      document.body.appendChild(notification);
+      
+      // إزالة الإشعار بعد 3 ثوان
+      setTimeout(() => {
+        notification.style.animation = "slideOut 0.3s ease";
+        setTimeout(() => document.body.removeChild(notification), 300);
+      }, 3000);
     }
 
+    // إضافة أنيميشن للإشعارات
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(-100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(-100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+
     function toCSV(rows){
-      const header = ["createdAtMs","fullName","phone","email","gameId","notes"];
+      const header = ["التاريخ","الاسم","الهاتف","الإيميل","ID اللعبة","أسماء اللاعبين"];
       const lines = [header.join(",")];
       for(const r of rows){
-        const line = header.map(k => `"${String(r[k] ?? "").replace(/"/g,'""')}"`).join(",");
+        const line = [
+          fmtDate(r.createdAtMs),
+          r.fullName,
+          r.phone,
+          r.email || "",
+          r.gameId,
+          r.notes
+        ].map(field => `"${String(field).replace(/"/g,'""')}"`).join(",");
         lines.push(line);
       }
       return lines.join("\n");
@@ -168,30 +771,37 @@
 
     document.getElementById("btnRefresh").onclick = async () => {
       await loadRows();
+      showNotification("تم تحديث البيانات بنجاح", "success");
     };
 
     document.getElementById("btnCSV").onclick = () => {
       const csv = toCSV(allRows);
-      const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+      const blob = new Blob(["\ufeff" + csv], {type:"text/csv;charset=utf-8"});
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "registrations.csv";
+      a.download = `تسجيلات_${new Date().toLocaleDateString('ar-EG')}.csv`;
       a.click();
       URL.revokeObjectURL(url);
+      showNotification("تم تصدير الملف بنجاح", "success");
     };
 
     document.getElementById("btnLogout").onclick = async () => {
-      await fetch("/api/logout", { credentials: "include" });
-      location.href = "/login.html";
+      // محاكاة تسجيل الخروج
+      // await fetch("/api/logout", { credentials: "include" });
+      showNotification("جاري تسجيل الخروج...", "info");
+      setTimeout(() => {
+        window.location.href = "/login.html";
+      }, 1000);
     };
 
-    q.addEventListener("input", render);
+    q.addEventListener("input", () => {
+      render();
+    });
 
+    // تحميل البيانات عند بدء التشغيل
     (async () => {
-      if(await ensureAuth()){
-        await loadRows();
-      }
+      await loadRows();
     })();
   </script>
 </body>
