@@ -25,6 +25,7 @@
     <div class="card">
       <h2>دخول الأدمن</h2>
 
+      <!-- فورم الدخول -->
       <form id="loginForm" autocomplete="off">
         <label>اسم المستخدم</label>
         <input name="user" type="text" required placeholder="USERNAME" />
@@ -38,33 +39,30 @@
         <div id="msgErr" class="msg err"></div>
       </form>
 
-      <!-- ✅ NEW: تغيير اليوزر / الباسورد (نفس الستايل) -->
-      <div id="adminTools" style="display:none; margin-top:14px;">
-        <button id="openUserBox" type="button">تغيير اسم المستخدم</button>
-        <button id="openPassBox" type="button">تغيير الباسورد</button>
+      <!-- تغيير اسم المستخدم -->
+      <hr style="margin:20px 0; border-color:#263252">
+      <h3 style="margin:0 0 10px">تغيير اسم المستخدم</h3>
 
-        <!-- تغيير اسم المستخدم -->
-        <div id="userBox" style="display:none; margin-top:10px;">
-          <label>الباسورد الحالي</label>
-          <input id="u_currentPass" type="password" placeholder="CURRENT PASSWORD" />
+      <label>الباسورد الحالي</label>
+      <input id="u_currentPass" type="password" placeholder="CURRENT PASSWORD" />
 
-          <label>اسم المستخدم الجديد</label>
-          <input id="u_newUser" type="text" placeholder="NEW USERNAME" />
+      <label>اسم المستخدم الجديد</label>
+      <input id="u_newUser" type="text" placeholder="NEW USERNAME" />
 
-          <button id="saveUser" type="button">حفظ اسم المستخدم</button>
-        </div>
+      <button id="saveUser" type="button">حفظ اسم المستخدم</button>
 
-        <!-- تغيير الباسورد -->
-        <div id="passBox" style="display:none; margin-top:10px;">
-          <label>الباسورد الحالي</label>
-          <input id="p_currentPass" type="password" placeholder="CURRENT PASSWORD" />
+      <!-- تغيير الباسورد -->
+      <hr style="margin:20px 0; border-color:#263252">
+      <h3 style="margin:0 0 10px">تغيير الباسورد</h3>
 
-          <label>الباسورد الجديد</label>
-          <input id="p_newPass" type="password" placeholder="NEW PASSWORD (min 8 chars)" />
+      <label>الباسورد الحالي</label>
+      <input id="p_currentPass" type="password" placeholder="CURRENT PASSWORD" />
 
-          <button id="savePass" type="button">حفظ الباسورد</button>
-        </div>
-      </div>
+      <label>الباسورد الجديد</label>
+      <input id="p_newPass" type="password" placeholder="NEW PASSWORD (min 8 chars)" />
+
+      <button id="savePass" type="button">حفظ الباسورد</button>
+
     </div>
   </div>
 
@@ -74,41 +72,13 @@
     const okBox = document.getElementById("msgOk");
     const errBox = document.getElementById("msgErr");
 
-    const adminTools = document.getElementById("adminTools");
-    const openUserBox = document.getElementById("openUserBox");
-    const openPassBox = document.getElementById("openPassBox");
-    const userBox = document.getElementById("userBox");
-    const passBox = document.getElementById("passBox");
-
     const saveUser = document.getElementById("saveUser");
     const savePass = document.getElementById("savePass");
 
     function show(box, text) { box.textContent = text; box.style.display = "block"; }
     function hide(box){ box.style.display = "none"; }
 
-    function showTools() { adminTools.style.display = "block"; }
-    function toggle(el) { el.style.display = (el.style.display === "none" ? "block" : "none"); }
-
-    // ✅ لو الأدمن بالفعل داخل (token cookie) نظهر أدوات التغيير
-    (async () => {
-      try {
-        const res = await fetch("/api/me", { credentials: "include" });
-        if (res.ok) showTools();
-      } catch {}
-    })();
-
-    openUserBox.addEventListener("click", () => {
-      hide(okBox); hide(errBox);
-      passBox.style.display = "none";
-      toggle(userBox);
-    });
-
-    openPassBox.addEventListener("click", () => {
-      hide(okBox); hide(errBox);
-      userBox.style.display = "none";
-      toggle(passBox);
-    });
-
+    // تسجيل الدخول
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       hide(okBox); hide(errBox);
@@ -132,8 +102,6 @@
         if (!res.ok) throw new Error(out.error || "بيانات غير صحيحة");
 
         show(okBox, "✅ تم تسجيل الدخول بنجاح");
-        showTools(); // ✅ بعد تسجيل الدخول نظهر أدوات التغيير
-
         setTimeout(() => (location.href = "/dashboard.html"), 250);
 
       } catch (err) {
@@ -143,7 +111,7 @@
       }
     });
 
-    // ✅ تغيير اسم المستخدم
+    // تغيير اسم المستخدم
     saveUser.addEventListener("click", async () => {
       hide(okBox); hide(errBox);
       saveUser.disabled = true;
@@ -159,26 +127,18 @@
           body: JSON.stringify({ currentPassword, newUser })
         });
 
-        const txt = await res.text();
-        let out;
-        try { out = JSON.parse(txt); }
-        catch { out = { error: txt || "Non-JSON response" }; }
-
-        if (!res.ok) throw new Error(out.error || "فشل تغيير اسم المستخدم");
+        const out = await res.json().catch(()=>({}));
+        if (!res.ok) throw new Error(out.error || "فشل التغيير");
 
         show(okBox, "✅ تم تغيير اسم المستخدم بنجاح");
-        document.getElementById("u_currentPass").value = "";
-        document.getElementById("u_newUser").value = "";
-        userBox.style.display = "none";
-
       } catch (err) {
-        show(errBox, "❌ " + (err.message || "حدث خطأ"));
+        show(errBox, "❌ " + err.message);
       } finally {
         saveUser.disabled = false;
       }
     });
 
-    // ✅ تغيير الباسورد
+    // تغيير الباسورد
     savePass.addEventListener("click", async () => {
       hide(okBox); hide(errBox);
       savePass.disabled = true;
@@ -194,20 +154,12 @@
           body: JSON.stringify({ currentPassword, newPassword })
         });
 
-        const txt = await res.text();
-        let out;
-        try { out = JSON.parse(txt); }
-        catch { out = { error: txt || "Non-JSON response" }; }
-
-        if (!res.ok) throw new Error(out.error || "فشل تغيير الباسورد");
+        const out = await res.json().catch(()=>({}));
+        if (!res.ok) throw new Error(out.error || "فشل التغيير");
 
         show(okBox, "✅ تم تغيير الباسورد بنجاح");
-        document.getElementById("p_currentPass").value = "";
-        document.getElementById("p_newPass").value = "";
-        passBox.style.display = "none";
-
       } catch (err) {
-        show(errBox, "❌ " + (err.message || "حدث خطأ"));
+        show(errBox, "❌ " + err.message);
       } finally {
         savePass.disabled = false;
       }
