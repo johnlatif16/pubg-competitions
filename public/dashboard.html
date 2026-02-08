@@ -106,7 +106,7 @@
       tbody.innerHTML = `<tr><td colspan="8">... جاري التحميل</td></tr>`;
       const { res, out } = await apiGet("/api/registrations");
       if(!res.ok){
-        location.href = "/login";
+        location.href = "/login.html";
         return;
       }
       allRows = out.rows || [];
@@ -169,7 +169,7 @@
 
     document.getElementById("btnLogout").onclick = async () => {
       await fetch("/api/logout", { credentials: "include" });
-      location.href = "/login";
+      location.href = "/login.html";
     };
 
     q.addEventListener("input", render);
