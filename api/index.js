@@ -51,6 +51,25 @@ function isAuth(req) {
   }
 }
 
+// timing-safe compare for reset key
+function safeEqual(a, b) {
+  try {
+    const crypto = require("crypto");
+    const A = Buffer.from(String(a ?? ""), "utf8");
+    const B = Buffer.from(String(b ?? ""), "utf8");
+    if (A.length !== B.length) return false;
+    return crypto.timingSafeEqual(A, B);
+  } catch {
+    return false;
+  }
+}
+
+function hasValidResetKey(body) {
+  const key = process.env.RESET_KEY || "";
+  if (!key) return false;
+  return safeEqual(body?.resetKey, key);
+}
+
 /* ---------------- Firebase Admin (lazy) ---------------- */
 
 function getAdmin() {
@@ -150,9 +169,7 @@ async function handleLogin(req, res) {
   if (!user || !password) return json(res, 400, { error: "Missing credentials" });
 
   const jwtSecret = process.env.JWT_SECRET || "";
-  if (!jwtSecret) {
-    return json(res, 500, { error: "Missing JWT_SECRET" });
-  }
+  if (!jwtSecret) return json(res, 500, { error: "Missing JWT_SECRET" });
 
   const db = getDb();
   const { data } = await readAdminAuth(db);
@@ -165,9 +182,7 @@ async function handleLogin(req, res) {
   const okUser = String(user) === String(data.user);
   const okPass = await bcrypt.compare(String(password), String(data.passwordHash));
 
-  if (!okUser || !okPass) {
-    return json(res, 401, { error: "Invalid credentials" });
-  }
+  if (!okUser || !okPass) return json(res, 401, { error: "Invalid credentials" });
 
   const jwt = require("jsonwebtoken");
   const token = jwt.sign({ role: "admin", user: data.user }, jwtSecret, { expiresIn: "7d" });
@@ -215,7 +230,7 @@ async function handleRegister(req, res) {
   const fullName = String(body.fullName || "").trim();
   const phone = String(body.phone || "").trim();
   const gameId = String(body.gameId || "").trim();
-  const notes = String(body.notes || "").trim(); // اسم اللاعب/أسماء اللاعبين
+  const notes = String(body.notes || "").trim();
 
   if (fullName.length < 2) return json(res, 400, { error: "fullName is required" });
   if (phone.length < 6) return json(res, 400, { error: "phone is required" });
@@ -249,7 +264,6 @@ async function handleRegistrations(req, res) {
   return json(res, 200, { ok: true, rows });
 }
 
-// delete one registration by id
 async function handleDeleteRegistration(req, res) {
   if (!isAuth(req)) return json(res, 401, { error: "Unauthorized" });
   if (req.method !== "DELETE") return json(res, 405, { error: "Method not allowed" });
@@ -264,19 +278,25 @@ async function handleDeleteRegistration(req, res) {
   return json(res, 200, { ok: true });
 }
 
-/* -------- NEW: Change admin username/password (requires current password) -------- */
+/* ---------------- NEW: Reset endpoints (NO login) ----------------
+   Require: resetKey + currentPassword
+*/
 
 async function handleAdminUsername(req, res) {
-  if (!isAuth(req)) return json(res, 401, { error: "Unauthorized" });
   if (req.method !== "PATCH") return json(res, 405, { error: "Method not allowed" });
 
-  const { currentPassword, newUser } = await readBody(req);
-  const userTrim = String(newUser || "").trim();
+  const body = await readBody(req);
+
+  if (!hasValidResetKey(body)) return json(res, 401, { error: "Invalid reset key" });
+
+  const currentPassword = body.currentPassword;
+  const userTrim = String(body.newUser || "").trim();
 
   if (!currentPassword) return json(res, 400, { error: "currentPassword is required" });
   if (userTrim.length < 2) return json(res, 400, { error: "newUser is required" });
 
   const db = getDb();
+
   const ok = await verifyCurrentPassword(db, currentPassword);
   if (!ok) return json(res, 401, { error: "Current password is incorrect" });
 
@@ -287,16 +307,20 @@ async function handleAdminUsername(req, res) {
 }
 
 async function handleAdminPassword(req, res) {
-  if (!isAuth(req)) return json(res, 401, { error: "Unauthorized" });
   if (req.method !== "PATCH") return json(res, 405, { error: "Method not allowed" });
 
-  const { currentPassword, newPassword } = await readBody(req);
-  const pass = String(newPassword || "");
+  const body = await readBody(req);
+
+  if (!hasValidResetKey(body)) return json(res, 401, { error: "Invalid reset key" });
+
+  const currentPassword = body.currentPassword;
+  const pass = String(body.newPassword || "");
 
   if (!currentPassword) return json(res, 400, { error: "currentPassword is required" });
   if (pass.length < 8) return json(res, 400, { error: "newPassword must be at least 8 chars" });
 
   const db = getDb();
+
   const ok = await verifyCurrentPassword(db, currentPassword);
   if (!ok) return json(res, 401, { error: "Current password is incorrect" });
 
@@ -326,7 +350,7 @@ module.exports = async (req, res) => {
 
     if (path === "/api/registration") return await handleDeleteRegistration(req, res);
 
-    // ✅ NEW endpoints
+    // ✅ reset without login (requires RESET_KEY)
     if (path === "/api/admin/username") return await handleAdminUsername(req, res);
     if (path === "/api/admin/password") return await handleAdminPassword(req, res);
 
