@@ -39,29 +39,38 @@
         <div id="msgErr" class="msg err"></div>
       </form>
 
-      <!-- تغيير اسم المستخدم -->
+      <!-- ✅ زرّين فقط ظاهرين -->
       <hr style="margin:20px 0; border-color:#263252">
-      <h3 style="margin:0 0 10px">تغيير اسم المستخدم</h3>
+      <button id="btnToggleUser" type="button">تغيير اسم المستخدم</button>
+      <button id="btnTogglePass" type="button">تغيير كلمة السر</button>
 
-      <label>الباسورد الحالي</label>
-      <input id="u_currentPass" type="password" placeholder="CURRENT PASSWORD" />
+      <!-- ✅ البيانات مخفية: تغيير اسم المستخدم -->
+      <div id="userBox" style="display:none; margin-top:10px;">
+        <label>الكود السري</label>
+        <input id="u_resetKey" type="password" placeholder="RESET KEY" />
 
-      <label>اسم المستخدم الجديد</label>
-      <input id="u_newUser" type="text" placeholder="NEW USERNAME" />
+        <label>الباسورد الحالي</label>
+        <input id="u_currentPass" type="password" placeholder="CURRENT PASSWORD" />
 
-      <button id="saveUser" type="button">حفظ اسم المستخدم</button>
+        <label>اسم المستخدم الجديد</label>
+        <input id="u_newUser" type="text" placeholder="NEW USERNAME" />
 
-      <!-- تغيير الباسورد -->
-      <hr style="margin:20px 0; border-color:#263252">
-      <h3 style="margin:0 0 10px">تغيير الباسورد</h3>
+        <button id="saveUser" type="button">حفظ اسم المستخدم</button>
+      </div>
 
-      <label>الباسورد الحالي</label>
-      <input id="p_currentPass" type="password" placeholder="CURRENT PASSWORD" />
+      <!-- ✅ البيانات مخفية: تغيير كلمة السر -->
+      <div id="passBox" style="display:none; margin-top:10px;">
+        <label>الكود السري</label>
+        <input id="p_resetKey" type="password" placeholder="RESET KEY" />
 
-      <label>الباسورد الجديد</label>
-      <input id="p_newPass" type="password" placeholder="NEW PASSWORD (min 8 chars)" />
+        <label>الباسورد الحالي</label>
+        <input id="p_currentPass" type="password" placeholder="CURRENT PASSWORD" />
 
-      <button id="savePass" type="button">حفظ الباسورد</button>
+        <label>الباسورد الجديد</label>
+        <input id="p_newPass" type="password" placeholder="NEW PASSWORD (min 8 chars)" />
+
+        <button id="savePass" type="button">حفظ كلمة السر</button>
+      </div>
 
     </div>
   </div>
@@ -72,11 +81,26 @@
     const okBox = document.getElementById("msgOk");
     const errBox = document.getElementById("msgErr");
 
-    const saveUser = document.getElementById("saveUser");
-    const savePass = document.getElementById("savePass");
-
     function show(box, text) { box.textContent = text; box.style.display = "block"; }
     function hide(box){ box.style.display = "none"; }
+
+    // toggle sections
+    const btnToggleUser = document.getElementById("btnToggleUser");
+    const btnTogglePass = document.getElementById("btnTogglePass");
+    const userBox = document.getElementById("userBox");
+    const passBox = document.getElementById("passBox");
+
+    btnToggleUser.addEventListener("click", () => {
+      hide(okBox); hide(errBox);
+      passBox.style.display = "none";
+      userBox.style.display = (userBox.style.display === "none" ? "block" : "none");
+    });
+
+    btnTogglePass.addEventListener("click", () => {
+      hide(okBox); hide(errBox);
+      userBox.style.display = "none";
+      passBox.style.display = (passBox.style.display === "none" ? "block" : "none");
+    });
 
     // تسجيل الدخول
     form.addEventListener("submit", async (e) => {
@@ -105,61 +129,77 @@
         setTimeout(() => (location.href = "/dashboard.html"), 250);
 
       } catch (err) {
-        show(errBox, "❌ " + err.message);
+        show(errBox, "❌ " + (err.message || "حدث خطأ"));
       } finally {
         btn.disabled = false;
       }
     });
 
-    // تغيير اسم المستخدم
+    // تغيير اسم المستخدم (حل RESET_KEY بدون تسجيل دخول)
+    const saveUser = document.getElementById("saveUser");
     saveUser.addEventListener("click", async () => {
       hide(okBox); hide(errBox);
       saveUser.disabled = true;
 
       try {
+        const resetKey = document.getElementById("u_resetKey").value;
         const currentPassword = document.getElementById("u_currentPass").value;
         const newUser = document.getElementById("u_newUser").value;
 
         const res = await fetch("/api/admin/username", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ currentPassword, newUser })
+          body: JSON.stringify({ resetKey, currentPassword, newUser })
         });
 
         const out = await res.json().catch(()=>({}));
-        if (!res.ok) throw new Error(out.error || "فشل التغيير");
+        if (!res.ok) throw new Error(out.error || "فشل تغيير اسم المستخدم");
 
         show(okBox, "✅ تم تغيير اسم المستخدم بنجاح");
+        // تنظيف
+        document.getElementById("u_currentPass").value = "";
+        document.getElementById("u_newUser").value = "";
+        // (اختياري) تسيب resetKey أو تمسحه:
+        // document.getElementById("u_resetKey").value = "";
+        userBox.style.display = "none";
+
       } catch (err) {
-        show(errBox, "❌ " + err.message);
+        show(errBox, "❌ " + (err.message || "حدث خطأ"));
       } finally {
         saveUser.disabled = false;
       }
     });
 
-    // تغيير الباسورد
+    // تغيير كلمة السر (حل RESET_KEY بدون تسجيل دخول)
+    const savePass = document.getElementById("savePass");
     savePass.addEventListener("click", async () => {
       hide(okBox); hide(errBox);
       savePass.disabled = true;
 
       try {
+        const resetKey = document.getElementById("p_resetKey").value;
         const currentPassword = document.getElementById("p_currentPass").value;
         const newPassword = document.getElementById("p_newPass").value;
 
         const res = await fetch("/api/admin/password", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ currentPassword, newPassword })
+          body: JSON.stringify({ resetKey, currentPassword, newPassword })
         });
 
         const out = await res.json().catch(()=>({}));
-        if (!res.ok) throw new Error(out.error || "فشل التغيير");
+        if (!res.ok) throw new Error(out.error || "فشل تغيير كلمة السر");
 
-        show(okBox, "✅ تم تغيير الباسورد بنجاح");
+        show(okBox, "✅ تم تغيير كلمة السر بنجاح");
+        // تنظيف
+        document.getElementById("p_currentPass").value = "";
+        document.getElementById("p_newPass").value = "";
+        // (اختياري) تسيب resetKey أو تمسحه:
+        // document.getElementById("p_resetKey").value = "";
+        passBox.style.display = "none";
+
       } catch (err) {
-        show(errBox, "❌ " + err.message);
+        show(errBox, "❌ " + (err.message || "حدث خطأ"));
       } finally {
         savePass.disabled = false;
       }
