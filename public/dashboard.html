@@ -11,12 +11,14 @@
     .card{background:#121a2c; border:1px solid #263252; border-radius:14px; padding:18px; margin-top:14px}
     button{padding:10px 14px; border-radius:12px; border:1px solid #2a3a62; background:#0c1427; color:#e9eefc; cursor:pointer}
     .primary{background:#4f7cff; border:0; color:#fff; font-weight:700}
+    .danger{background:#ff4f4f; border:0; color:#fff; font-weight:700}
     input{padding:10px 12px; border-radius:12px; border:1px solid #2a3a62; background:#0c1427; color:#e9eefc; width:260px; max-width:100%}
     table{width:100%; border-collapse:collapse; margin-top:12px}
     th,td{border-bottom:1px solid #223055; padding:10px; text-align:right; font-size:14px; vertical-align:top}
     th{opacity:.9}
     .muted{opacity:.8; font-size:13px}
     .row-actions{display:flex; gap:8px; flex-wrap:wrap}
+    .mini{padding:8px 10px; border-radius:10px; font-size:13px}
   </style>
 </head>
 <body>
@@ -46,10 +48,11 @@
               <th>الإيميل</th>
               <th>ID اللعبة</th>
               <th>اسم اللاعب/أسماء اللاعبين</th>
+              <th>إجراءات</th>
             </tr>
           </thead>
           <tbody id="tbody">
-            <tr><td colspan="6">... جاري التحميل</td></tr>
+            <tr><td colspan="7">... جاري التحميل</td></tr>
           </tbody>
         </table>
   </div>
@@ -80,6 +83,15 @@
       return { res, out };
     }
 
+    async function apiDelete(url){
+      const res = await fetch(url, { method: "DELETE", credentials: "include" });
+      const txt = await res.text();
+      let out;
+      try { out = JSON.parse(txt); }
+      catch { out = { error: txt || "Non-JSON response" }; }
+      return { res, out };
+    }
+
     async function ensureAuth(){
       const { res } = await apiGet("/api/me");
       if(!res.ok){
@@ -91,10 +103,10 @@
     }
 
     async function loadRows(){
-      tbody.innerHTML = `<tr><td colspan="6">... جاري التحميل</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7">... جاري التحميل</td></tr>`;
       const { res, out } = await apiGet("/api/registrations");
       if(!res.ok){
-        location.href = "/login.html";
+        location.href = "/login";
         return;
       }
       allRows = out.rows || [];
@@ -104,16 +116,14 @@
     function render(){
       const needle = q.value.trim().toLowerCase();
       const rows = !needle ? allRows : allRows.filter(r => {
-        const blob = [
-          r.fullName, r.phone, r.email, r.gameId, r.notes
-        ].join(" ").toLowerCase();
+        const blob = [r.fullName, r.phone, r.email, r.gameId, r.notes].join(" ").toLowerCase();
         return blob.includes(needle);
       });
 
       stats.textContent = `عدد التسجيلات المعروضة: ${rows.length} (الإجمالي: ${allRows.length})`;
 
       if(!rows.length){
-        tbody.innerHTML = `<tr><td colspan="6">لا توجد نتائج</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7">لا توجد نتائج</td></tr>`;
         return;
       }
 
@@ -125,8 +135,25 @@
           <td>${esc(r.email)}</td>
           <td>${esc(r.gameId)}</td>
           <td>${esc(r.notes)}</td>
+          <td>
+            <button class="mini danger" onclick="deleteRow('${esc(r.id)}')">حذف</button>
+          </td>
         </tr>
       `).join("");
+    }
+
+    async function deleteRow(id){
+      if(!id) return;
+      const ok = confirm("متأكد إنك عايز تحذف التسجيل ده؟");
+      if(!ok) return;
+
+      const { res, out } = await apiDelete("/api/registration?id=" + encodeURIComponent(id));
+      if(!res.ok){
+        alert(out.error || "فشل الحذف");
+        return;
+      }
+      // refresh
+      await loadRows();
     }
 
     function toCSV(rows){
