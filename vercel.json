@@ -1,6 +1,9 @@
 {
   "version": 2,
   "rewrites": [
+    { "source": "/login", "destination": "/public/login.html" },
+    { "source": "/dashboard", "destination": "/public/dashboard.html" },
+
     { "source": "/api/:path*", "destination": "/api/index.js" },
     { "source": "/", "destination": "/public/index.html" },
     { "source": "/:path*", "destination": "/public/:path*" }
