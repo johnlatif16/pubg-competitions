@@ -169,6 +169,7 @@ async function handleRegister(req, res) {
 
   if (fullName.length < 2) return json(res, 400, { error: "fullName is required" });
   if (phone.length < 6) return json(res, 400, { error: "phone is required" });
+  if (gameId.length < 2) return json(res, 400, { error: "gameId is required" });
   if (notes.length < 2) return json(res, 400, { error: "player name(s) is required" });
 
   const db = getDb();
@@ -176,7 +177,7 @@ async function handleRegister(req, res) {
   await db.collection("registrations").add({
     fullName,
     phone,
-    email: body.email ? String(body.email).trim().toLowerCase() : "",
+    gameId,
     notes,
     createdAtMs: Date.now(),
   });
