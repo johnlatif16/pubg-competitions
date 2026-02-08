@@ -8,7 +8,6 @@
   <style>
     :root {
       --bg-primary: #0c1427;
-      --bg-secondary: #121a2c;
       --bg-card: #1a233a;
       --border: #2a3a62;
       --accent: #4f7cff;
@@ -19,11 +18,7 @@
       --error: #ef4444;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, Roboto, 'Noto Sans Arabic', sans-serif;
@@ -36,16 +31,8 @@
       padding: 20px;
     }
 
-    .login-container {
-      width: 100%;
-      max-width: 480px;
-      animation: fadeIn 0.8s ease;
-    }
-
-    .login-header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
+    .login-container { width: 100%; max-width: 480px; animation: fadeIn 0.8s ease; }
+    .login-header { text-align: center; margin-bottom: 40px; }
 
     .logo {
       font-size: 2.5rem;
@@ -58,11 +45,7 @@
       display: inline-block;
     }
 
-    .login-subtitle {
-      color: var(--text-secondary);
-      font-size: 1.1rem;
-      opacity: 0.9;
-    }
+    .login-subtitle { color: var(--text-secondary); font-size: 1.1rem; opacity: 0.9; }
 
     .login-card {
       background: var(--bg-card);
@@ -81,14 +64,9 @@
       justify-content: center;
       gap: 15px;
     }
+    .login-title i { color: var(--accent); }
 
-    .login-title i {
-      color: var(--accent);
-    }
-
-    .form-group {
-      margin-bottom: 25px;
-    }
+    .form-group { margin-bottom: 25px; }
 
     label {
       display: block;
@@ -98,10 +76,7 @@
       font-size: 0.95rem;
     }
 
-    .input-with-icon {
-      position: relative;
-    }
-
+    .input-with-icon { position: relative; }
     .input-icon {
       position: absolute;
       left: 20px;
@@ -153,20 +128,15 @@
       box-shadow: 0 10px 25px rgba(79, 124, 255, 0.3);
     }
 
-    .btn-login:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
-    }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
 
     .message {
       padding: 18px;
       border-radius: 12px;
       margin-top: 25px;
-      display: flex;
+      display: none;
       align-items: center;
       gap: 15px;
-      display: none;
     }
 
     .message-success {
@@ -190,7 +160,6 @@
       font-size: 0.9rem;
     }
 
-    /* تأثيرات الخلفية */
     .glow-effect {
       position: fixed;
       width: 400px;
@@ -199,64 +168,30 @@
       background: radial-gradient(circle, rgba(79, 124, 255, 0.1) 0%, transparent 70%);
       z-index: -1;
     }
+    .glow-1 { top: 10%; right: 10%; }
+    .glow-2 { bottom: 10%; left: 10%; }
 
-    .glow-1 {
-      top: 10%;
-      right: 10%;
-    }
-
-    .glow-2 {
-      bottom: 10%;
-      left: 10%;
-    }
-
-    /* أنيميشن */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* تصميم متجاوب */
     @media (max-width: 768px) {
-      .login-card {
-        padding: 30px 25px;
-      }
-      
-      .logo {
-        font-size: 2rem;
-      }
-      
-      .login-title {
-        font-size: 1.6rem;
-      }
+      .login-card { padding: 30px 25px; }
+      .logo { font-size: 2rem; }
+      .login-title { font-size: 1.6rem; }
     }
-
     @media (max-width: 480px) {
-      body {
-        padding: 15px;
-      }
-      
-      .login-card {
-        padding: 25px 20px;
-        border-radius: 16px;
-      }
-      
-      .login-title {
-        font-size: 1.4rem;
-      }
-      
-      input {
-        padding: 16px 15px 16px 50px;
-      }
-      
-      .input-icon {
-        left: 15px;
-      }
+      body { padding: 15px; }
+      .login-card { padding: 25px 20px; border-radius: 16px; }
+      .login-title { font-size: 1.4rem; }
+      input { padding: 16px 15px 16px 50px; }
+      .input-icon { left: 15px; }
     }
   </style>
 </head>
+
 <body>
-  <!-- تأثيرات الخلفية -->
   <div class="glow-effect glow-1"></div>
   <div class="glow-effect glow-2"></div>
 
@@ -267,9 +202,7 @@
     </div>
 
     <div class="login-card">
-      <h2 class="login-title">
-        <i class="fas fa-lock"></i> دخول الأدمن
-      </h2>
+      <h2 class="login-title"><i class="fas fa-lock"></i> دخول الأدمن</h2>
 
       <form id="loginForm" autocomplete="off">
         <div class="form-group">
@@ -296,7 +229,7 @@
           <i class="fas fa-check-circle"></i>
           <div class="message-text"></div>
         </div>
-        
+
         <div id="msgErr" class="message message-error">
           <i class="fas fa-exclamation-circle"></i>
           <div class="message-text"></div>
@@ -317,50 +250,46 @@
     const errBox = document.getElementById("msgErr");
 
     function showMessage(box, text) {
-      const textEl = box.querySelector('.message-text');
-      textEl.textContent = text;
-      box.style.display = 'flex';
+      box.querySelector(".message-text").textContent = text;
+      box.style.display = "flex";
     }
-    
-    function hideMessage(box) { 
-      box.style.display = 'none'; 
+
+    function hideMessage(box) {
+      box.style.display = "none";
     }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      hideMessage(okBox); 
+      hideMessage(okBox);
       hideMessage(errBox);
-      
+
       btn.disabled = true;
+      const oldHtml = btn.innerHTML;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
 
       try {
         const data = Object.fromEntries(new FormData(form).entries());
 
-        // محاكاة لإرسال البيانات (يمكن استبدالها بـ fetch حقيقي)
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // في الحقيقة، استخدم:
-        // const res = await fetch("/api/login", {
-        //   method: "POST",
-        //   headers: { "Content-Type": "application/json" },
-        //   credentials: "include",
-        //   body: JSON.stringify({ user: data.user, password: data.password })
-        // });
-        // const result = await res.json();
-        
-        // نجاح محاكاة
-        showMessage(okBox, "✅ تم تسجيل الدخول بنجاح، جاري التوجيه...");
-        
-        // توجيه بعد ثانيتين
-        setTimeout(() => {
-          window.location.href = "/dashboard.html";
-        }, 2000);
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ user: data.user, password: data.password }),
+        });
 
+        const txt = await res.text();
+        let out;
+        try { out = JSON.parse(txt); }
+        catch { out = { error: txt || "Non-JSON response" }; }
+
+        if (!res.ok) throw new Error(out.error || "بيانات غير صحيحة");
+
+        showMessage(okBox, "✅ تم تسجيل الدخول بنجاح، جاري التوجيه...");
+        setTimeout(() => (location.href = "/dashboard.html"), 600);
       } catch (err) {
-        showMessage(errBox, "❌ بيانات الدخول غير صحيحة، يرجى المحاولة مرة أخرى");
+        showMessage(errBox, "❌ " + (err.message || "بيانات غير صحيحة"));
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول إلى لوحة التحكم';
+        btn.innerHTML = oldHtml;
       }
     });
   </script>
