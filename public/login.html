@@ -28,10 +28,10 @@
 
       <form id="loginForm" autocomplete="off">
         <label>اسم المستخدم</label>
-        <input name="user" type="text" required placeholder="admin" />
+        <input name="user" type="text" required placeholder="USERNAME" />
 
         <label>كلمة المرور</label>
-        <input name="password" type="password" required placeholder="••••••••" />
+        <input name="password" type="password" required placeholder="PASSWORD" />
 
         <button id="btn" type="submit">دخول</button>
 
@@ -73,7 +73,7 @@
         if (!res.ok) throw new Error(out.error || "بيانات غير صحيحة");
 
         show(okBox, "✅ تم تسجيل الدخول بنجاح");
-        setTimeout(() => (location.href = "/dashboard"), 250);
+        setTimeout(() => (location.href = "/dashboard.html"), 250);
 
       } catch (err) {
         show(errBox, "❌ " + err.message);
